@@ -928,6 +928,10 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
           <div style="font-size:12px;color:var(--muted);">複数枚同時選択OK</div>
         </div>
         <div id="receipt-preview-grid" class="receipt-preview-grid"></div>
+        <div style="margin-top:12px;">
+          <button onclick="setGeminiKey()" style="background:#f0f0f0;border:1px solid #ccc;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">⚙️ Gemini APIキー設定</button>
+          <span id="gemini-key-status" style="font-size:11px;color:var(--muted);margin-left:8px;"></span>
+        </div>
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;" id="receipt-action-row" style="display:none">
           <button class="btn-primary" id="receipt-analyze-btn"
             onclick="analyzeReceipts()" style="display:none;">
@@ -2277,6 +2281,16 @@ init();
 /* ============================================================
    伝票入力機能 JavaScript
    ============================================================ */
+  window.setGeminiKey = function() {
+  const current = localStorage.getItem('gemini_api_key') || '';
+  const key = prompt('Gemini APIキーを入力してください:', current);
+  if (key !== null && key.trim()) {
+    localStorage.setItem('gemini_api_key', key.trim());
+    const st = document.getElementById('gemini-key-status');
+    if (st) st.textContent = '✅ 設定済み';
+    alert('APIキーを保存しました。');
+  }
+};
 (function() {
   let receiptFiles = [];      // 選択された画像ファイル
   let receiptResults = [];    // AI解析結果
