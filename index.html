@@ -1967,7 +1967,8 @@ init();
   function buildMonthSel() {
     const months = [...new Set(records.map(r => ym(r['日付']||'') ))].filter(m=>m.length===7).sort().reverse();
     const sel = document.getElementById('an-wd-sel');
-    sel.innerHTML = months.map(m => `<option value="${m}">${m.replace('-','年')}月</option>`).join('');
+　　　if (!sel) return;
+　　　sel.innerHTML = months.map(m => `<option value="${m}">${m.replace('-','年')}月</option>`).join('');
   }
 
   // 月リスト取得
