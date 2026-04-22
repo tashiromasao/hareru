@@ -2257,7 +2257,7 @@ init();
 
   /* ---- 分析ページ初期化（showPage('analytics') 時に呼ばれる） ---- */
   window.initAnalytics = function() {
-    buildMonthSel();
+    try { buildMonthSel(); } catch(e) { console.warn('buildMonthSel:', e); }
     // 月別ナビを現在月にリセット
     anNavYear  = new Date().getFullYear();
     anNavMonth = new Date().getMonth();
