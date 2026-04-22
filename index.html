@@ -2371,7 +2371,8 @@ init();
   // ---- Claude API呼び出し ----
   async function callClaudeForReceipt(base64, mediaType, filename) {
     // Gemini APIをブラウザから直接呼び出す
-    const GEMINI_KEY = 'AIzaSyDX72zvJ84JhEd2v_dIfDyBQcoZpJeJPpc';
+    const GEMINI_KEY = localStorage.getItem('gemini_api_key') || '';
+if (!GEMINI_KEY) { alert('Gemini APIキーが設定されていません。ダッシュボードの設定から入力してください。'); return; }
     const today = new Date();
     const prompt = `これはバー・居酒屋「ハレル」の手書き伝票の画像です。以下のルールに従ってデータを読み取り、JSONの配列のみで返してください（説明文・マークダウン不要、[]で始まり[]で終わること）。
 
