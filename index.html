@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ハレル ダッシュボード</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.39.3/umd/supabase.min.js"></script>
+<style>
+:root {
+  --primary: #1a3a5c;
+  --accent: #2e9e8f;
+  --accent2: #e8834a;
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --text: #2c3e50;
+  --muted: #7f8c8d;
+  --border: #e0e6ed;
+  --sidebar-w: 200px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+/* サイドバー */
+.sidebar {
+  width: var(--sidebar-w); background: var(--primary); color: white;
+  display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+}
+.sidebar-logo { padding: 24px 20px; font-size: 22px; font-weight: 700; letter-spacing: 2px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+.sidebar-logo span { color: var(--accent); }
+.nav-item {
+  padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+  font-size: 13px; transition: background 0.2s; border-left: 3px solid transparent;
+}
+.nav-item:hover { background: rgba(255,255,255,0.1); }
+.nav-item.active { background: rgba(46,158,143,0.2); border-left-color: var(--accent); }
+.nav-icon { font-size: 16px; }
+
+/* メインコンテンツ */
+.main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+.topbar {
+  background: white; padding: 14px 28px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-size: 16px; font-weight: 600; color: var(--primary); }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.file-upload-btn {
+  background: var(--accent); color: white; border: none; padding: 8px 16px;
+  border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500;
+}
+.file-upload-btn:hover { background: #25877a; }
+
+.content { padding: 24px 28px; }
+
+/* ページ管理 */
+.page { display: none; }
+.page.active { display: block; }
+
+/* カードスタイル */
+.card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 20px; }
+
+/* サマリーグリッド */
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: var(--card); border-radius: 10px; border: 1px solid var(--border); padding: 16px 20px; }
+.stat-label { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-value { font-size: 26px; font-weight: 700; color: var(--primary); }
+.stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.stat-accent { color: var(--accent); }
+
+/* 2カラムレイアウト */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.three-col { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+/* セクションタイトル */
+.section-title { font-size: 14px; font-weight: 600; color: var(--primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.section-title::before { content: ''; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; display: inline-block; }
+
+/* 売上・顧客数詳細カード */
+.detail-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.detail-row:last-child { border-bottom: none; }
+.detail-label { font-size: 13px; color: var(--muted); }
+.detail-value { font-size: 15px; font-weight: 600; color: var(--text); }
+.detail-sub { font-size: 11px; color: var(--muted); }
+
+/* カレンダー */
+.calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.calendar-month { font-size: 15px; font-weight: 600; color: var(--primary); cursor: pointer; }
+.calendar-month:hover { color: var(--accent); text-decoration: underline; }
+.calendar-nav { background: none; border: 1px solid var(--border); border-radius: 4px; width: 28px; height: 28px; cursor: pointer; font-size: 14px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day-header { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); padding: 4px 0; }
+.cal-day-header:last-child { color: #e74c3c; }
+.cal-day-header:nth-last-child(2) { color: #2980b9; }
+.cal-day {
+  text-align: center; padding: 6px 2px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; min-height: 50px; display: flex; flex-direction: column; align-items: center;
+  transition: background 0.15s;
+}
+.cal-day:hover { background: var(--bg); }
+.cal-day.today { background: var(--accent); color: white; font-weight: 700; }
+.cal-day.today .cal-sales { color: rgba(255,255,255,0.85); }
+.cal-day.other-month { color: var(--border); }
+.cal-day-num { font-size: 13px; font-weight: 500; }
+.cal-sales { font-size: 10px; color: var(--accent); margin-top: 2px; }
+.cal-day.today .cal-sales { color: rgba(255,255,255,0.9); }
+
+/* グラフエリア */
+.chart-container { position: relative; height: 240px; }
+
+/* 過去実績リンク */
+.link-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--accent); border-radius: 6px; padding: 6px 14px;
+  text-decoration: none; transition: all 0.2s;
+}
+.link-btn:hover { background: var(--accent); color: white; }
+
+/* テーブル */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { background: var(--bg); padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--bg); }
+.btn-sm { padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: white; font-size: 12px; cursor: pointer; }
+.btn-sm:hover { background: var(--bg); }
+.btn-accent { border-color: var(--accent); color: var(--accent); }
+.btn-accent:hover { background: var(--accent); color: white; }
+
+/* 伝票詳細 */
+.detail-card { background: var(--bg); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.detail-card-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.detail-tag { background: white; border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; font-size: 12px; color: var(--text); }
+.detail-tag.highlight { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* 営業日バッジ */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-open { background: #e8f8f5; color: var(--accent); }
+.badge-closed { background: #fef0e7; color: var(--accent2); }
+
+/* アップロードエリア */
+.upload-area {
+  border: 2px dashed var(--border); border-radius: 10px; padding: 40px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.upload-area:hover { border-color: var(--accent); background: #f0faf9; }
+.upload-icon { font-size: 40px; margin-bottom: 12px; }
+.upload-text { font-size: 14px; color: var(--muted); }
+
+/* モーダル */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 12px; padding: 28px; width: 500px; max-width: 90vw; }
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--primary); }
+.modal-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
+.modal-label { font-size: 13px; color: var(--muted); width: 80px; flex-shrink: 0; }
+.modal-input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.btn-primary { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500; }
+.btn-secondary { background: white; color: var(--text); border: 1px solid var(--border); padding: 8px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+
+/* パスワード認証画面 */
+.auth-overlay {
+  display: flex; position: fixed; inset: 0; background: var(--primary);
+  z-index: 9999; align-items: center; justify-content: center;
+}
+.auth-box {
+  background: white; border-radius: 16px; padding: 40px 36px;
+  width: 320px; max-width: 90vw; text-align: center;
+}
+.auth-logo { font-size: 28px; font-weight: 700; letter-spacing: 2px; color: var(--primary); margin-bottom: 8px; }
+.auth-logo span { color: var(--accent); }
+.auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.auth-input {
+  width: 100%; padding: 12px 16px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 15px; margin-bottom: 14px;
+  text-align: center; letter-spacing: 4px;
+}
+.auth-btn {
+  width: 100%; padding: 12px; background: var(--accent); color: white;
+  border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+  cursor: pointer;
+}
+.auth-btn:hover { background: #25877a; }
+.auth-error { color: #e74c3c; font-size: 13px; margin-top: 10px; }
+.bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--primary); z-index: 200;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.bottom-nav-inner { display: flex; justify-content: space-around; padding: 8px 0 env(safe-area-inset-bottom, 8px); }
+.bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; cursor: pointer; color: rgba(255,255,255,0.6); font-size: 10px; min-width: 60px; border-radius: 8px; transition: all 0.2s; }
+.bottom-nav-item.active { color: var(--accent); }
+.bottom-nav-item .bn-icon { font-size: 20px; }
+
+/* タブレット */
+@media (max-width: 900px) {
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col, .three-col { grid-template-columns: 1fr; }
+}
+
+/* スマホ */
+@media (max-width: 600px) {
+  :root { --sidebar-w: 0px; }
+
+  .sidebar { display: none; }
+  .bottom-nav { display: block; }
+
+  .main { margin-left: 0; padding-bottom: 70px; }
+
+  .topbar { padding: 12px 16px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-right .file-upload-btn { display: none; }
+  #current-date { display: none; }
+
+  .content { padding: 12px 14px; }
+
+  .summary-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+  .stat-card { padding: 12px 14px; }
+  .stat-value { font-size: 20px; }
+  .stat-label { font-size: 10px; }
+
+  .two-col, .three-col { grid-template-columns: 1fr; gap: 12px; }
+
+  .card { padding: 14px; border-radius: 10px; }
+
+  .cal-day { min-height: 42px; padding: 4px 1px; }
+  .cal-day-num { font-size: 12px; }
+  .cal-sales { font-size: 9px; }
+  .calendar-grid { gap: 1px; }
+
+  .chart-container { height: 200px; }
+
+  .data-table { font-size: 12px; }
+  .data-table th, .data-table td { padding: 8px 10px; }
+
+  .modal { padding: 20px 16px; }
+  .modal-row { flex-direction: column; gap: 4px; }
+  .modal-label { width: auto; }
+  .modal-input { width: 100%; }
+
+  .detail-card { padding: 12px; }
+  .detail-value { font-size: 14px; }
+  .detail-sub { font-size: 10px; line-height: 1.5; }
+
+  .upload-area { padding: 28px 16px; }
+
+  .section-title { font-size: 13px; }
+
+  /* テーブルスクロール */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* ==================== 分析ページ CSS ==================== */
+#page-analytics .an-tab-nav {
+  display: flex; gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+#page-analytics .an-tab-nav::-webkit-scrollbar { display: none; }
+#page-analytics .an-tab-btn {
+  flex-shrink: 0; padding: 10px 18px; border: none;
+  background: none; font-size: 13px; font-weight: 600;
+  color: var(--muted); cursor: pointer;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: all .2s; white-space: nowrap;
+}
+#page-analytics .an-tab-btn.active {
+  color: var(--primary); border-bottom-color: var(--accent2);
+}
+#page-analytics .an-content { display: none; }
+#page-analytics .an-content.active { display: block; }
+
+/* 期間チップ */
+.an-period-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.an-chip {
+  padding: 5px 13px; border: 1.5px solid var(--border);
+  border-radius: 14px; background: white; color: var(--muted);
+  cursor: pointer; font-size: 12px; font-weight: 600; transition: all .2s;
+}
+.an-chip.active { background: var(--primary); border-color: var(--primary); color: white; }
+.an-month-sel {
+  padding: 5px 10px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 13px; background: white; cursor: pointer; color: var(--text);
+}
+
+/* 棒グラフ */
+.an-bar-wrap { display: flex; align-items: flex-end; gap: 5px; height: 140px; padding: 0 2px; }
+.an-bar-col {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1; gap: 4px; height: 100%; justify-content: flex-end;
+}
+.an-bar-val { font-size: 9px; color: var(--text); font-weight: 700; text-align: center; line-height: 1.2; }
+.an-bar-body { width: 100%; border-radius: 5px 5px 0 0; min-height: 3px; transition: height .5s cubic-bezier(.4,0,.2,1); }
+.an-bar-lbl { font-size: 11px; font-weight: 700; color: var(--muted); }
+
+/* テーブル */
+.an-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.an-tbl th {
+  background: var(--bg); padding: 9px 10px; text-align: center;
+  color: var(--muted); font-weight: 700; font-size: 11px;
+  border-bottom: 2px solid var(--border); white-space: nowrap;
+  text-transform: uppercase; letter-spacing: .3px;
+}
+.an-tbl td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--border); }
+.an-tbl tr:last-child td { border-bottom: none; }
+.an-tbl tr:hover td { background: var(--bg); }
+
+/* 全期間ランキング 2カラム */
+.an-rank-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media(max-width:600px){ .an-rank-grid { grid-template-columns: 1fr; } }
+.an-rank-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  transition: background .15s;
+}
+.an-rank-item:hover { background: #eef2f7; }
+.an-rbadge {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; flex-shrink: 0; font-size: 12px;
+}
+.an-rbadge.r1 { background:#fff3cd; color:#b8860b; font-size:18px; }
+.an-rbadge.r2 { background:#f0f0f0; color:#707070; font-size:16px; }
+.an-rbadge.r3 { background:#fde8d8; color:#c07030; font-size:15px; }
+.an-rbadge.rn { background:#f0f0f5; color:#aaa; font-size:12px; }
+.an-rinfo { flex:1; min-width:0; }
+.an-rname { font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.an-rsub  { font-size:11px; color:var(--muted); margin-top:1px; }
+.an-rval-main { font-size:14px; font-weight:800; color:var(--primary); white-space:nowrap; }
+
+/* サブタブ */
+.an-sub-tabs { display:flex; gap:6px; margin-bottom:14px; }
+.an-stab {
+  padding:5px 14px; border:1.5px solid var(--border);
+  border-radius:14px; background:white; color:var(--muted);
+  cursor:pointer; font-size:12px; font-weight:600; transition:all .2s;
+}
+.an-stab.active { background:var(--accent); border-color:var(--accent); color:white; }
+
+/* 月別ランキンググリッド */
+.an-monthly-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+.an-mcard { background:var(--bg); border-radius:10px; padding:12px 14px; border:1px solid var(--border); }
+.an-mlabel {
+  font-size:12px; font-weight:700; color:var(--muted); margin-bottom:8px;
+  display:flex; align-items:center; gap:6px;
+}
+.an-mlabel::after { content:''; flex:1; height:1px; background:var(--border); }
+.an-mrow { display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid var(--border); }
+.an-mrow:last-child { border-bottom:none; }
+.an-mnum { width:20px; font-size:12px; font-weight:800; color:#bbb; text-align:center; flex-shrink:0; }
+.an-mnum.r1{color:#b8860b;} .an-mnum.r2{color:#888;} .an-mnum.r3{color:#c07030;}
+.an-mname { flex:1; font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.an-mval  { font-size:12px; font-weight:700; color:var(--muted); white-space:nowrap; }
+
+/* ボトルランキング */
+.an-bottle-list { display:flex; flex-direction:column; gap:8px; }
+.an-bitem {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 14px; border-radius:10px;
+  background:var(--bg); border:1px solid var(--border);
+}
+.an-bbadge {
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; flex-shrink:0;
+}
+.an-bbadge.r1{background:#fff3cd;color:#b8860b;font-size:18px;}
+.an-bbadge.r2{background:#f0f0f0;color:#707070;font-size:16px;}
+.an-bbadge.r3{background:#fde8d8;color:#c07030;font-size:15px;}
+.an-bbadge.rn{background:#f0f0f5;color:#aaa;font-size:12px;}
+.an-bname { flex:1; font-size:14px; font-weight:700; color:var(--text); }
+.an-bbar-wrap { flex:2; height:7px; background:var(--border); border-radius:4px; overflow:hidden; }
+.an-bbar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--primary),var(--accent)); transition:width .5s; }
+.an-bcount { font-size:15px; font-weight:800; color:var(--primary); text-align:right; white-space:nowrap; }
+.an-bunit  { font-size:11px; color:var(--muted); }
+.an-empty { color:var(--muted); font-size:13px; text-align:center; padding:20px; }
+/* ==================== /分析ページ CSS ==================== */
+
+
+/* ===== 分析追加CSS ===== */
+.an-customer-modal {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45);
+  z-index:500; align-items:center; justify-content:center; padding:16px;
+}
+.an-customer-modal.open { display:flex; }
+.an-customer-box {
+  background:white; border-radius:14px; width:100%; max-width:560px;
+  max-height:85vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.18);
+}
+.an-customer-header {
+  padding:18px 20px 14px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:white; z-index:1;
+}
+.an-customer-title { font-size:16px; font-weight:700; color:var(--primary); }
+.an-customer-dates { font-size:12px; color:var(--muted); margin-top:2px; }
+.an-customer-close {
+  background:none; border:none; font-size:20px; cursor:pointer; color:var(--muted); padding:4px 8px;
+}
+.an-customer-body { padding:16px 20px; }
+.an-customer-stats {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px;
+}
+.an-cstat { background:var(--bg); border-radius:8px; padding:10px 12px; text-align:center; }
+.an-cstat-val { font-size:18px; font-weight:700; color:var(--primary); }
+.an-cstat-lbl { font-size:11px; color:var(--muted); margin-top:2px; }
+.an-customer-records { display:flex; flex-direction:column; gap:8px; }
+.an-crec {
+  background:var(--bg); border-radius:8px; padding:10px 12px;
+  display:flex; align-items:center; gap:10px; font-size:13px;
+}
+.an-crec-date { font-weight:600; color:var(--primary); width:80px; flex-shrink:0; }
+.an-crec-info { flex:1; color:var(--text); }
+.an-crec-amount { font-weight:700; color:var(--accent); white-space:nowrap; }
+
+/* 月別ナビ */
+.an-month-nav {
+  display:flex; align-items:center; gap:10px; margin-bottom:14px;
+}
+.an-month-nav-btn {
+  background:none; border:1px solid var(--border); border-radius:6px;
+  width:28px; height:28px; cursor:pointer; font-size:14px; color:var(--text);
+}
+.an-month-nav-btn:hover { background:var(--bg); }
+.an-month-nav-label { font-size:14px; font-weight:600; color:var(--primary); min-width:80px; text-align:center; }
+
+/* ボトル持ち主表示 */
+.an-bottle-owner {
+  margin-top:8px; padding:8px 10px; background:var(--bg);
+  border-radius:6px; font-size:12px; color:var(--text);
+  display:none;
+}
+.an-bottle-owner.open { display:block; }
+/* ===== /分析追加CSS ===== */
+
+
+/* ===== 伝票アップロード CSS ===== */
+.receipt-upload-area {
+  border: 2px dashed var(--accent);
+  border-radius: 14px; padding: 32px 20px;
+  text-align: center; cursor: pointer;
+  transition: all .2s; background: #f0faf9;
+  position: relative;
+}
+.receipt-upload-area:hover { background: #e0f5f2; }
+.receipt-upload-area input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.receipt-preview-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px; margin-top: 16px;
+}
+.receipt-preview-item {
+  background: white; border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; position: relative;
+}
+.receipt-preview-img {
+  width: 100%; height: 140px; object-fit: cover; display: block;
+}
+.receipt-preview-label {
+  padding: 6px 10px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border);
+}
+.receipt-preview-remove {
+  position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5);
+  color: white; border: none; border-radius: 50%; width: 24px; height: 24px;
+  cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.receipt-status-card {
+  background: var(--bg); border-radius: 10px; padding: 14px 16px;
+  margin-bottom: 10px; border-left: 4px solid var(--accent);
+}
+.receipt-status-card.processing { border-left-color: #f39c12; }
+.receipt-status-card.done { border-left-color: #27ae60; }
+.receipt-status-card.error { border-left-color: #e74c3c; }
+.receipt-result-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+.receipt-result-table th {
+  background: var(--bg); padding: 8px 10px; text-align: left;
+  font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--border);
+}
+.receipt-result-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.receipt-result-table input {
+  width: 100%; border: 1px solid transparent; border-radius: 4px;
+  padding: 3px 6px; font-size: 13px; background: transparent;
+}
+.receipt-result-table input:focus {
+  border-color: var(--accent); outline: none; background: white;
+}
+.receipt-register-btn {
+  background: var(--accent); color: white; border: none;
+  padding: 10px 24px; border-radius: 8px; font-size: 14px;
+  font-weight: 600; cursor: pointer; margin-top: 12px;
+}
+.receipt-register-btn:hover { background: #25877a; }
+.receipt-register-btn:disabled { background: #ccc; cursor: not-allowed; }
+/* ===== /伝票アップロード CSS ===== */
+
+</style>
+</head>
+<body>
+
+<!-- サイドバー -->
+<nav class="sidebar">
+  <div class="sidebar-logo">ハレル<span>.</span></div>
+  <div class="nav-item active" onclick="showPage('top')">
+    <span class="nav-icon">📊</span> ダッシュボード
+  </div>
+  <div class="nav-item" onclick="showPage('history')">
+    <span class="nav-icon">📅</span> 過去の実績
+  </div>
+  <div class="nav-item" onclick="showPage('analytics')">
+    <span class="nav-icon">📈</span> 分析
+  </div>
+  <div class="nav-item" onclick="showPage('search')">
+    <span class="nav-icon">🔍</span> データ検索
+  </div>
+  <div class="nav-item" onclick="showPage('receipt')">
+    <span class="nav-icon">📷</span> 伝票入力
+  </div>
+  <div class="nav-item" onclick="showPage('upload')">
+    <span class="nav-icon">📤</span> データ読み込み
+  </div>
+</nav>
+
+<!-- ボトムナビ（スマホ用） -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <div class="bottom-nav-item active" id="bn-top" onclick="showPage('top')">
+      <span class="bn-icon">📊</span>
+      <span>ホーム</span>
+    </div>
+    <div class="bottom-nav-item" id="bn-history" onclick="showPage('history')">
+      <span class="bn-icon">📅</span>
+      <span>実績</span>
+    </div>
+    <div class="bottom-nav-item" id="bn-analytics" onclick="showPage('analytics')">
+      <span class="bn-icon">📈</span>
+      <span>分析</span>
+    </div>
+    <div class="bottom-nav-item" id="bn-search" onclick="showPage('search')">
+      <span class="bn-icon">🔍</span>
+      <span>検索</span>
+    </div>
+    <div class="bottom-nav-item" id="bn-receipt" onclick="showPage('receipt')">
+      <span class="bn-icon">📷</span>
+      <span>伝票入力</span>
+    </div>
+    <div class="bottom-nav-item" id="bn-upload" onclick="showPage('upload')">
+      <span class="bn-icon">📤</span>
+      <span>読み込み</span>
+    </div>
+  </div>
+</nav>
+
+<!-- メイン -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">ダッシュボード トップ</div>
+    <div class="topbar-right">
+      <span id="current-date" style="font-size:13px;color:var(--muted)"></span>
+      <button class="file-upload-btn" onclick="showPage('upload')">+ データ読み込み</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== トップページ ===== -->
+    <div class="page active" id="page-top">
+
+      <!-- ① 当月・前月の売上・顧客数（最上位） -->
+      <div class="two-col" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="section-title">売上</div>
+          <div class="detail-row">
+            <div style="width:100%;">
+              <div class="detail-label">当月</div>
+              <div class="detail-value" id="current-month-sales">¥0</div>
+              <div class="detail-sub">平均 <span id="cm-avg-sales">¥0</span> / 日　最大 <span id="cm-max-sales">¥0</span></div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div style="width:100%;">
+              <div class="detail-label">前月</div>
+              <div class="detail-value" id="prev-month-sales">¥0</div>
+              <div class="detail-sub">平均 <span id="pm-avg-sales">¥0</span> / 日　最大 <span id="pm-max-sales">¥0</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">顧客数</div>
+          <div class="detail-row">
+            <div style="width:100%;">
+              <div class="detail-label">当月来店</div>
+              <div class="detail-value" id="current-month-visits">0人</div>
+              <div class="detail-sub">平均 <span id="cm-avg-visits">0</span>人/日　最大 <span id="cm-max-visits">0</span>人　新規 <span id="cm-new" class="stat-accent">0</span>人　リピート率 <span id="cm-repeat">0</span>%</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div style="width:100%;">
+              <div class="detail-label">前月来店</div>
+              <div class="detail-value" id="prev-month-visits">0人</div>
+              <div class="detail-sub">平均 <span id="pm-avg-visits">0</span>人/日　最大 <span id="pm-max-visits">0</span>人　新規 <span id="pm-new" class="stat-accent">0</span>人　リピート率 <span id="pm-repeat">0</span>%</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <span class="link-btn" onclick="showPage('history')">過去の実績 →</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② カレンダー -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="calendar-header">
+          <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
+          <div class="calendar-month" id="calendar-title" onclick="showMonthly()">2026年4月</div>
+          <button class="calendar-nav" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="calendar-grid" id="calendar-days-header">
+          <div class="cal-day-header">月</div>
+          <div class="cal-day-header">火</div>
+          <div class="cal-day-header">水</div>
+          <div class="cal-day-header">木</div>
+          <div class="cal-day-header">金</div>
+          <div class="cal-day-header">土</div>
+          <div class="cal-day-header">日</div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+
+      <!-- ③ グラフ -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-title">月別推移（過去12ヶ月）</div>
+        <div class="chart-container">
+          <canvas id="trend-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- ④ 累計サマリー（最下部） -->
+      <div class="summary-grid">
+        <div class="stat-card">
+          <div class="stat-label">累計売上</div>
+          <div class="stat-value" id="total-sales">¥0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">累計来店数</div>
+          <div class="stat-value" id="total-visits">0人</div>
+          <div class="stat-sub">ユニーク顧客 <span id="unique-customers" class="stat-accent">0人</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">リピート率</div>
+          <div class="stat-value" id="repeat-rate">0%</div>
+          <div class="stat-sub">リピーター <span id="repeat-count" class="stat-accent">0人</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">総組数</div>
+          <div class="stat-value" id="total-groups">0組</div>
+          <div class="stat-sub">読み込み伝票数</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== カレンダー下層ページ（日次詳細）===== -->
+    <div class="page" id="page-daily">
+      <div style="margin-bottom:16px;">
+        <span class="link-btn" onclick="goBack()">← 戻る</span>
+      </div>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div class="section-title" id="daily-date-title">4月1日（水）</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span id="business-day-badge" class="badge badge-open">営業日</span>
+            <button class="btn-sm" onclick="toggleBusinessDay()" id="toggle-biz-btn">休業日に変更</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:24px;">
+          <div><span class="detail-label" style="font-size:12px;">売上</span><div class="stat-value" id="daily-sales" style="font-size:20px;">¥0</div></div>
+          <div><span class="detail-label" style="font-size:12px;">来店人数</span><div class="stat-value" id="daily-visits" style="font-size:20px;">0人</div></div>
+          <div><span class="detail-label" style="font-size:12px;">組数</span><div class="stat-value" id="daily-groups" style="font-size:20px;">0組</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">伝票一覧</div>
+        <div id="daily-records"></div>
+      </div>
+    </div>
+
+    <!-- ===== 月次実績ページ ===== -->
+    <div class="page" id="page-monthly">
+      <div style="margin-bottom:16px;">
+        <span class="link-btn" onclick="showPage('top')">← ダッシュボードへ</span>
+      </div>
+      <div class="card">
+        <div class="section-title" id="monthly-title">2026年4月 月次実績</div>
+        <div class="table-scroll"><table class="data-table">
+          <thead>
+            <tr>
+              <th>日付</th><th>曜日</th><th>売上</th><th>来店人数</th><th>組数</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="monthly-table-body"></tbody>
+        </table>
+      </div>
+      </div>
+    </div>
+
+    <!-- ===== 過去実績ページ ===== -->
+    <div class="page" id="page-history">
+      <div class="card">
+        <div class="section-title">月別実績一覧</div>
+        <div class="table-scroll"><table class="data-table">
+          <thead>
+            <tr>
+              <th>年月</th><th>売上</th><th>来店人数</th><th>ユニーク顧客</th><th>新規</th><th>リピート率</th><th>組数</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body"></tbody>
+        </table>
+      </div>
+      </div>
+    </div>
+
+    <!-- ===== データ読み込みページ ===== -->
+    <div class="page" id="page-upload">
+      <div class="card" style="max-width:600px;margin-bottom:16px;">
+        <div class="section-title">CSVデータ読み込み</div>
+        <div class="upload-area" onclick="document.getElementById('csv-input').click()">
+          <div class="upload-icon">📂</div>
+          <div class="upload-text">CSVファイルをタップして選択<br><small>（伝票データNo1.csv など）</small></div>
+          <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="loadCSV(event)">
+        </div>
+        <div id="upload-status" style="margin-top:16px;font-size:13px;color:var(--accent);"></div>
+
+        <!-- 読み込み済みデータ情報 -->
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+          <div class="section-title">保存済みデータ</div>
+          <div id="loaded-summary" style="font-size:13px;color:var(--muted);margin-bottom:12px;">データが読み込まれていません</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-secondary" onclick="exportCSV()" id="export-btn" style="display:none;">📥 CSVエクスポート</button>
+            <button class="btn-secondary" onclick="clearAllData()" id="clear-btn" style="display:none;color:#e74c3c;border-color:#e74c3c;">🗑 データを削除</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 読み込み履歴 -->
+      <div class="card" style="max-width:600px;">
+        <div class="section-title">読み込み履歴</div>
+        <div id="upload-history" style="font-size:13px;color:var(--muted);">履歴なし</div>
+      </div>
+    </div>
+
+    <!-- ===== データ検索ページ ===== -->
+    <div class="page" id="page-search">
+
+      <!-- 通常検索 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-title">顧客・日付検索</div>
+        <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-start;">
+          <div style="position:relative;">
+            <input type="text" id="search-name" placeholder="顧客名（ひらがな1文字で候補）" class="modal-input" style="max-width:240px;"
+              oninput="onNameInput()" onblur="setTimeout(hideNameCandidates,200)">
+            <div id="name-candidates" style="display:none;position:absolute;top:100%;left:0;background:white;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:300;min-width:200px;max-height:200px;overflow-y:auto;"></div>
+          </div>
+          <input type="text" id="search-date" placeholder="日付（例：12月13日）" class="modal-input" style="max-width:180px;">
+          <button class="btn-primary" onclick="doSearch()">検索</button>
+          <button class="btn-secondary" onclick="clearSearch()">クリア</button>
+        </div>
+        <!-- 顧客サマリーカード（顧客名検索時のみ表示） -->
+        <div id="customer-summary" style="display:none;background:var(--bg);border-radius:8px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:12px;" id="summary-name"></div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">最終来店日</div>
+              <div style="font-size:14px;font-weight:600;" id="summary-last"></div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">初回来店日</div>
+              <div style="font-size:14px;font-weight:600;" id="summary-first"></div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">来店回数</div>
+              <div style="font-size:14px;font-weight:600;" id="summary-count"></div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">合計金額（累計）</div>
+              <div style="font-size:14px;font-weight:600;color:var(--accent);" id="summary-total"></div>
+            </div>
+            <div style="grid-column:1/-1;">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">現在のボトル</div>
+              <div style="font-size:14px;font-weight:600;color:var(--accent2);" id="summary-bottle"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-scroll"><table class="data-table">
+          <thead>
+            <tr><th>日付</th><th>顧客名</th><th>人数</th><th>合計</th><th>ボトル</th><th>炭酸</th><th>その他</th><th>備考</th></tr>
+          </thead>
+          <tbody id="search-results"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ボトル検索 -->
+      <div class="card">
+        <div class="section-title">ボトル検索（現在の持ち主）</div>
+        <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+          <input type="text" id="search-bottle" placeholder="ボトル名で検索" class="modal-input" style="max-width:240px;">
+          <button class="btn-primary" onclick="doBottleSearch()">検索</button>
+          <button class="btn-secondary" onclick="clearBottleSearch()">クリア</button>
+        </div>
+        <div class="table-scroll"><table class="data-table">
+          <thead>
+            <tr><th>最終来店日</th><th>顧客名</th><th>ボトル</th><th>合計</th><th>炭酸</th><th>その他</th><th>備考</th></tr>
+          </thead>
+          <tbody id="bottle-results"></tbody>
+        </table></div>
+      </div>
+
+    </div>
+
+
+    <!-- ===== 分析ページ ===== -->
+    <div class="page" id="page-analytics">
+
+      <!-- タブナビ（新しい分析はここに追加） -->
+      <div class="an-tab-nav">
+        <button class="an-tab-btn active" onclick="anSwitchTab('weekday',this)">📅 曜日別実績</button>
+        <button class="an-tab-btn"        onclick="anSwitchTab('ranking',this)">👑 常連ランキング</button>
+        <button class="an-tab-btn"        onclick="anSwitchTab('bottle', this)">🍶 ボトルランキング</button>
+        <!-- ▼ 新しいタブはここに追加 ▼ -->
+      </div>
+
+      <!-- ======= TAB1: 曜日別実績 ======= -->
+      <div id="an-weekday" class="an-content active">
+
+        <div class="an-period-row">
+          <div style="display:flex;gap:6px;">
+            <button class="an-chip active" onclick="anSetWdMode('all',this)">全期間</button>
+            <button class="an-chip"        onclick="anSetWdMode('month',this)">月別</button>
+          </div>
+        </div>
+
+        <!-- 月別ナビ（月別モード時のみ表示） -->
+        <div id="an-month-nav" style="display:none;">
+          <div class="an-month-nav">
+            <button class="an-month-nav-btn" onclick="anChangeMonth(-1)">‹</button>
+            <div class="an-month-nav-label" id="an-month-nav-label"></div>
+            <button class="an-month-nav-btn" onclick="anChangeMonth(1)">›</button>
+          </div>
+        </div>
+
+        <div class="two-col" style="margin-bottom:16px;">
+          <div class="card" style="padding-bottom:12px;">
+            <div class="section-title">曜日別 平均売上</div>
+            <div id="an-sales-chart" class="an-bar-wrap"></div>
+          </div>
+          <div class="card" style="padding-bottom:12px;">
+            <div class="section-title">曜日別 平均来店人数</div>
+            <div id="an-vis-chart" class="an-bar-wrap"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">曜日別 詳細データ</div>
+          <div class="table-scroll">
+            <table class="an-tbl">
+              <thead><tr><th>曜日</th><th>営業日数</th><th>平均売上</th><th>最高売上</th><th>平均来店</th><th>最多来店</th><th>平均組数</th><th>最多組数</th></tr></thead>
+              <tbody id="an-wd-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======= TAB2: 常連ランキング ======= -->
+      <div id="an-ranking" class="an-content">
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="section-title">全期間ランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">2回以上来店・全員表示</span></div>
+          <div class="an-sub-tabs">
+            <button class="an-stab active" onclick="anSetRankType('visits',this)">来店回数</button>
+            <button class="an-stab"        onclick="anSetRankType('amount',this)">合計金額</button>
+          </div>
+          <div id="an-rank-all" class="an-rank-grid"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">月別 来店回数ランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">各月ベスト5</span></div>
+          <div id="an-rank-monthly" class="an-monthly-grid"></div>
+        </div>
+      </div>
+
+      <!-- ======= TAB3: ボトルランキング ======= -->
+      <div id="an-bottle" class="an-content">
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="section-title">全期間 ボトルランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">ベスト5</span></div>
+          <div id="an-bottle-all" class="an-bottle-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">月別 ボトルランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">各月ベスト3</span></div>
+          <div id="an-bottle-monthly" class="an-monthly-grid"></div>
+        </div>
+      </div>
+
+      <!-- ▼ 新しいタブのコンテンツはここに追加 ▼ -->
+
+    </div>
+    <!-- ===== /分析ページ ===== -->
+
+
+    <!-- ===== 伝票入力ページ ===== -->
+    <div class="page" id="page-receipt">
+
+      <!-- アップロードエリア -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-title">📷 伝票画像をアップロード</div>
+        <div class="receipt-upload-area" onclick="document.getElementById('receipt-file-input').click()">
+          <input type="file" id="receipt-file-input" accept="image/*" multiple
+            onchange="onReceiptFilesSelected(event)">
+          <div style="font-size:40px;margin-bottom:10px;">📷</div>
+          <div style="font-size:15px;font-weight:600;color:var(--primary);margin-bottom:6px;">
+            タップして伝票を撮影・選択
+          </div>
+          <div style="font-size:12px;color:var(--muted);">複数枚同時選択OK</div>
+        </div>
+        <div id="receipt-preview-grid" class="receipt-preview-grid"></div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;" id="receipt-action-row" style="display:none">
+          <button class="btn-primary" id="receipt-analyze-btn"
+            onclick="analyzeReceipts()" style="display:none;">
+            🤖 AIでデータ化する
+          </button>
+        </div>
+      </div>
+
+      <!-- 処理状況 -->
+      <div id="receipt-status-area"></div>
+
+      <!-- データ確認・編集エリア -->
+      <div id="receipt-results-area"></div>
+
+    </div>
+    <!-- ===== /伝票入力ページ ===== -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ===== 顧客詳細モーダル（分析ランキングから） ===== -->
+<div class="an-customer-modal" id="an-customer-modal" onclick="anCloseCustomer(event)">
+  <div class="an-customer-box">
+    <div class="an-customer-header">
+      <div>
+        <div class="an-customer-title" id="an-cust-name"></div>
+        <div class="an-customer-dates" id="an-cust-dates"></div>
+      </div>
+      <button class="an-customer-close" onclick="anCloseCustomerDirect()">✕</button>
+    </div>
+    <div class="an-customer-body">
+      <div class="an-customer-stats">
+        <div class="an-cstat"><div class="an-cstat-val" id="an-cust-visits"></div><div class="an-cstat-lbl">来店回数</div></div>
+        <div class="an-cstat"><div class="an-cstat-val" id="an-cust-amount"></div><div class="an-cstat-lbl">累計金額</div></div>
+        <div class="an-cstat"><div class="an-cstat-val" id="an-cust-bottle"></div><div class="an-cstat-lbl">現在のボトル</div></div>
+      </div>
+      <div class="section-title" style="margin-bottom:10px;">来店履歴</div>
+      <div id="an-cust-records" class="an-customer-records"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 編集モーダル -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">伝票データ編集</div>
+    <div class="modal-row"><div class="modal-label">日付</div><input class="modal-input" id="edit-date"></div>
+    <div class="modal-row"><div class="modal-label">顧客名</div><input class="modal-input" id="edit-name"></div>
+    <div class="modal-row"><div class="modal-label">人数</div><input class="modal-input" id="edit-people" type="number"></div>
+    <div class="modal-row"><div class="modal-label">合計</div><input class="modal-input" id="edit-total" type="number"></div>
+    <div class="modal-row"><div class="modal-label">ボトル</div><input class="modal-input" id="edit-bottle"></div>
+    <div class="modal-row"><div class="modal-label">炭酸</div><input class="modal-input" id="edit-soda"></div>
+    <div class="modal-row"><div class="modal-label">その他</div><input class="modal-input" id="edit-other"></div>
+    <div class="modal-row"><div class="modal-label">備考</div><input class="modal-input" id="edit-note"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button class="btn-primary" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Supabase設定 =====
+const SUPABASE_URL = 'https://aqfbgsuipincllbzgdmv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZmJnc3VpcGluY2xsYnpnZG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMDQxNjksImV4cCI6MjA5MDg4MDE2OX0.DtI4Olzq_UjHBkc_YxTFaGjP5zF1VN-dN-616BJJfGs';
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ===== データ管理 =====
+let records = [];
+let businessDays = {}; // { "2026-04-01": true/false }
+let editingIndex = -1;
+let currentCalendarYear = new Date().getFullYear();
+let currentCalendarMonth = new Date().getMonth();
+let previousPage = 'top';
+let currentDailyDate = null;
+let trendChart = null;
+
+// 日付文字列パーサー（YYYY-MM-DD / YYYY/M/D / MM月DD日 すべて対応）
+function parseJpDate(str) {
+  if (!str) return null;
+  // ISO形式 YYYY-MM-DD
+  const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return new Date(parseInt(iso[1]), parseInt(iso[2])-1, parseInt(iso[3]));
+  // スラッシュ形式 YYYY/M/D
+  const sl = str.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (sl) return new Date(parseInt(sl[1]), parseInt(sl[2])-1, parseInt(sl[3]));
+  // 日本語形式 MM月DD日
+  const jp = str.match(/(\d+)月(\d+)日/);
+  if (jp) {
+    const mon = parseInt(jp[1]), day = parseInt(jp[2]);
+    const now = new Date();
+    let year = now.getFullYear();
+    if (mon >= 11 && now.getMonth() < 6) year--;
+    return new Date(year, mon-1, day);
+  }
+  return null;
+}
+
+function formatYen(n) { return '¥' + Math.round(n).toLocaleString(); }
+function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function getDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+const WEEKDAYS = ['日','月','火','水','木','金','土'];
+
+// ===== ローカルストレージキー =====
+const LS_RECORDS = 'hareru_records';
+const LS_HISTORY = 'hareru_upload_history';
+const LS_BIZDAYS = 'hareru_bizdays';
+
+// ===== CSV読み込み（追記モード） =====
+function loadCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // UTF-8で先読みして文字化けチェック → 文字化けならShift-JISで再読
+  const readerCheck = new FileReader();
+  readerCheck.onload = (e) => {
+    let text = e.target.result;
+    // BOM除去
+    text = text.replace(/^\uFEFF/, '');
+    // 文字化けチェック：日本語の月・日が含まれているか
+    if (!/[月日年]/.test(text)) {
+      // Shift-JIS で再試行
+      const readerSJIS = new FileReader();
+      readerSJIS.onload = (e2) => {
+        processCSVText(e2.target.result.replace(/^\uFEFF/, ''), file, event);
+      };
+      readerSJIS.readAsText(file, 'Shift-JIS');
+    } else {
+      processCSVText(text, file, event);
+    }
+  };
+  readerCheck.readAsText(file, 'UTF-8');
+}
+
+async function processCSVText(text, file, event) {
+    const newRecords = parseCSVtoArray(text);
+
+    // 既存データと重複チェックして追記
+    const existingKeys = new Set(records.map(r => r['日付'] + '|' + r['顧客名'] + '|' + r['合計']));
+    const added = newRecords.filter(r => {
+      const key = r['日付'] + '|' + r['顧客名'] + '|' + r['合計'];
+      return !existingKeys.has(key);
+    });
+
+    // Supabaseに保存
+    if (added.length > 0) {
+      document.getElementById('upload-status').textContent = '📡 Supabaseに保存中...';
+      await saveToSupabase(added);
+      // Supabaseから最新データを再取得
+      await loadFromSupabase();
+    }
+
+    // 履歴に追加
+    addUploadHistory(file.name, newRecords.length, added.length);
+
+    const msg = added.length === newRecords.length
+      ? `✅ ${file.name} を読み込みました（${added.length}件追加）`
+      : `✅ ${file.name} を読み込みました（${added.length}件追加 / ${newRecords.length - added.length}件は重複のためスキップ）`;
+    document.getElementById('upload-status').textContent = msg;
+
+    // ファイル入力リセット
+    event.target.value = '';
+
+    updateLoadedSummary();
+    updateDashboard();
+}
+
+function parseCSVLine(line) {
+  const cols = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ) {
+      cols.push(cur.trim()); cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+
+// ===== ボトル名の名寄せ辞書 =====
+const bottleNameDict = [
+  { pattern: /黒き[りリ]/i, correct: '黒霧島' },
+  // 今後追加する場合はここに追記
+];
+
+function normalizeBottleName(name) {
+  if (!name) return name;
+  for (const entry of bottleNameDict) {
+    if (entry.pattern.test(name)) return entry.correct;
+  }
+  return name;
+}
+
+function parseCSVtoArray(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const header = parseCSVLine(lines[0]).map(h => h.replace(/[\r"]/g,'').trim());
+  const result = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const cols = parseCSVLine(lines[i]);
+    if (cols.length < 2) continue;
+    const obj = {};
+    header.forEach((h, idx) => obj[h] = (cols[idx] || '').replace(/\r/g,''));
+    obj['ボトル'] = normalizeBottleName(obj['ボトル']);
+    obj._date = parseJpDate(obj['日付']);
+    obj._total = parseInt(obj['合計']) || 0;
+    obj._people = parseInt(obj['人数']) || 0;
+    result.push(obj);
+  }
+  return result;
+}
+
+// ===== ローカルストレージ保存・読み込み =====
+function saveToStorage() {
+  try {
+    // _dateはDateオブジェクトなので保存用に除外して再パース
+    const toSave = records.map(r => {
+      const obj = {...r};
+      delete obj._date;
+      return obj;
+    });
+    localStorage.setItem(LS_RECORDS, JSON.stringify(toSave));
+    localStorage.setItem(LS_BIZDAYS, JSON.stringify(businessDays));
+  } catch(e) {
+    console.error('保存エラー:', e);
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem(LS_RECORDS);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      records = parsed.map(r => {
+        r._date = parseJpDate(r['日付']);
+        r._total = parseInt(r['合計']) || 0;
+        r._people = parseInt(r['人数']) || 0;
+        return r;
+      });
+      records.sort((a,b) => (a._date||0) - (b._date||0));
+    }
+    const savedBiz = localStorage.getItem(LS_BIZDAYS);
+    if (savedBiz) businessDays = JSON.parse(savedBiz);
+  } catch(e) {
+    console.error('読み込みエラー:', e);
+  }
+}
+
+function addUploadHistory(filename, total, added) {
+  try {
+    const history = JSON.parse(localStorage.getItem(LS_HISTORY) || '[]');
+    history.unshift({
+      filename, total, added,
+      date: new Date().toLocaleString('ja-JP')
+    });
+    // 最新20件まで保持
+    if (history.length > 20) history.pop();
+    localStorage.setItem(LS_HISTORY, JSON.stringify(history));
+    renderUploadHistory();
+  } catch(e) {}
+}
+
+function renderUploadHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem(LS_HISTORY) || '[]');
+    const el = document.getElementById('upload-history');
+    if (!el) return;
+    if (history.length === 0) {
+      el.textContent = '履歴なし';
+      return;
+    }
+    el.innerHTML = history.map(h => `
+      <div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+        <div>
+          <div style="font-weight:500;color:var(--text);">${h.filename}</div>
+          <div style="font-size:11px;color:var(--muted);">${h.date}</div>
+        </div>
+        <div style="font-size:12px;color:var(--accent);">+${h.added}件追加（計${h.total}件）</div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+function updateLoadedSummary() {
+  const el = document.getElementById('loaded-summary');
+  const exportBtn = document.getElementById('export-btn');
+  const clearBtn = document.getElementById('clear-btn');
+  if (!el) return;
+  if (records.length === 0) {
+    el.textContent = 'データが読み込まれていません';
+    if (exportBtn) exportBtn.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+  } else {
+    const first = records[0]['日付'] || '';
+    const last = records[records.length-1]['日付'] || '';
+    el.textContent = `${records.length}件 ／ ${first} 〜 ${last}`;
+    if (exportBtn) exportBtn.style.display = '';
+    if (clearBtn) clearBtn.style.display = '';
+  }
+}
+
+// ===== CSVエクスポート =====
+function exportCSV() {
+  const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','精度','備考'];
+  const rows = records.map(r => header.map(h => r[h] || '').join(','));
+  const csv = '\uFEFF' + header.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `hareru_data_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== データ全削除 =====
+function clearAllData() {
+  if (!confirm('保存済みのデータをすべて削除しますか？\nこの操作は元に戻せません。')) return;
+  records = [];
+  businessDays = {};
+  localStorage.removeItem(LS_RECORDS);
+  localStorage.removeItem(LS_BIZDAYS);
+  localStorage.removeItem(LS_HISTORY);
+  updateLoadedSummary();
+  renderUploadHistory();
+  document.getElementById('upload-status').textContent = '🗑 データを削除しました';
+  updateDashboard();
+}
+
+// ===== ダッシュボード更新 =====
+function updateDashboard() {
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  const thisMonth = now.getMonth();
+  const prevYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+  const prevMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+
+  // 全データ集計
+  let totalSales = 0, totalVisits = 0;
+  const allNames = new Set();
+  records.forEach(r => {
+    totalSales += r._total;
+    totalVisits += r._people;
+    if (r['顧客名']) allNames.add(r['顧客名']);
+  });
+
+  // ユニーク顧客 = 全期間のユニークな顧客名数
+  const uniqueCount = allNames.size;
+  // リピーター = 全期間で2回以上来店した顧客数
+  const nameCount = {};
+  records.forEach(r => { if(r['顧客名']) nameCount[r['顧客名']] = (nameCount[r['顧客名']]||0)+1; });
+  const repeatCount = Object.values(nameCount).filter(c => c > 1).length;
+  const repeatRate = uniqueCount > 0 ? Math.round(repeatCount / uniqueCount * 100) : 0;
+
+  document.getElementById('total-sales').textContent = formatYen(totalSales);
+  document.getElementById('total-visits').textContent = totalVisits + '人';
+  document.getElementById('unique-customers').textContent = uniqueCount + '人';
+  document.getElementById('repeat-rate').textContent = repeatRate + '%';
+  document.getElementById('repeat-count').textContent = repeatCount + '人';
+  document.getElementById('total-groups').textContent = records.length + '組';
+
+  updateMonthStats(thisYear, thisMonth);
+  updateChart();
+  renderCalendar();
+  updateHistory();
+}
+
+// ===== 当月・前月の売上・顧客数を更新 =====
+function updateMonthStats(year, month) {
+  const prevYear = month === 0 ? year - 1 : year;
+  const prevMonth = month === 0 ? 11 : month - 1;
+
+  function monthRecords(y, m) {
+    return records.filter(r => r._date && r._date.getFullYear()===y && r._date.getMonth()===m);
+  }
+  function businessDayCount(recs) {
+    return new Set(recs.filter(r=>r._date).map(r=>getDateKey(r._date))).size || 1;
+  }
+  function monthStats(y, m) {
+    const recs = monthRecords(y, m);
+    const sales = recs.reduce((s,r)=>s+r._total,0);
+    const visits = recs.reduce((s,r)=>s+r._people,0);
+    const bdays = businessDayCount(recs);
+    const bySalesDay = {};
+    recs.forEach(r=>{ if(r._date){ const k=getDateKey(r._date); bySalesDay[k]=(bySalesDay[k]||0)+r._total; }});
+    const maxSales = Math.max(0,...Object.values(bySalesDay));
+    const byVisitDay = {};
+    recs.forEach(r=>{ if(r._date){ const k=getDateKey(r._date); byVisitDay[k]=(byVisitDay[k]||0)+r._people; }});
+    const maxVisits = Math.max(0,...Object.values(byVisitDay));
+    // 過去（その月より前）に来店したことがある顧客名セット
+    const prevNames = new Set(records.filter(r=>r._date&&(r._date.getFullYear()<y||(r._date.getFullYear()===y&&r._date.getMonth()<m))).map(r=>r['顧客名']));
+    // その月のユニーク顧客名セット（空文字除く）
+    const monthNames = new Set(recs.map(r=>r['顧客名']).filter(n=>n));
+    const mUniqueCount = monthNames.size;
+    // 新規 = その月の顧客のうち過去に来店したことがない顧客
+    const newCount = [...monthNames].filter(n=>!prevNames.has(n)).length;
+    // リピート率 = その月の顧客のうち過去に来店したことがある顧客の割合
+    const repeatCustomers = [...monthNames].filter(n=>prevNames.has(n)).length;
+    const mRepeat = mUniqueCount > 0 ? Math.round(repeatCustomers / mUniqueCount * 100) : 0;
+    return { sales, visits, bdays, maxSales, avgSales: Math.round(sales/bdays), maxVisits, avgVisits: Math.round(visits/bdays*10)/10, newCount, repeatRate: mRepeat };
+  }
+
+  const cm = monthStats(year, month);
+  const pm = monthStats(prevYear, prevMonth);
+
+  // セクションタイトルを表示中の月に合わせて更新
+  const now = new Date();
+  const isCurrentMonth = (year === now.getFullYear() && month === now.getMonth());
+  const cmLabel = isCurrentMonth ? '当月' : `${year}年${month+1}月`;
+  const pmLabel = isCurrentMonth ? '前月' : `${prevYear}年${prevMonth+1}月`;
+  document.querySelectorAll('.detail-label')[0].textContent = cmLabel;
+  document.querySelectorAll('.detail-label')[1].textContent = pmLabel;
+  document.querySelectorAll('.detail-label')[2].textContent = cmLabel + '来店';
+  document.querySelectorAll('.detail-label')[3].textContent = pmLabel + '来店';
+
+  document.getElementById('current-month-sales').textContent = formatYen(cm.sales);
+  document.getElementById('cm-avg-sales').textContent = formatYen(cm.avgSales);
+  document.getElementById('cm-max-sales').textContent = formatYen(cm.maxSales);
+  document.getElementById('prev-month-sales').textContent = formatYen(pm.sales);
+  document.getElementById('pm-avg-sales').textContent = formatYen(pm.avgSales);
+  document.getElementById('pm-max-sales').textContent = formatYen(pm.maxSales);
+  document.getElementById('current-month-visits').textContent = cm.visits + '人';
+  document.getElementById('cm-avg-visits').textContent = cm.avgVisits;
+  document.getElementById('cm-max-visits').textContent = cm.maxVisits;
+  document.getElementById('cm-new').textContent = cm.newCount;
+  document.getElementById('cm-repeat').textContent = cm.repeatRate;
+  document.getElementById('prev-month-visits').textContent = pm.visits + '人';
+  document.getElementById('pm-avg-visits').textContent = pm.avgVisits;
+  document.getElementById('pm-max-visits').textContent = pm.maxVisits;
+  document.getElementById('pm-new').textContent = pm.newCount;
+  document.getElementById('pm-repeat').textContent = pm.repeatRate;
+}
+
+// ===== トレンドグラフ =====
+function updateChart() {
+  const now = new Date();
+  const labels = [], salesData = [], visitsData = [];
+  for (let i = 11; i >= 0; i--) {
+    let m = now.getMonth() - i;
+    let y = now.getFullYear();
+    while (m < 0) { m += 12; y--; }
+    const recs = records.filter(r => r._date && r._date.getFullYear()===y && r._date.getMonth()===m);
+    const mon = m + 1;
+    labels.push(`${y}/${String(mon).padStart(2,'0')}`);
+    salesData.push(recs.reduce((s,r)=>s+r._total,0));
+    visitsData.push(recs.reduce((s,r)=>s+r._people,0));
+  }
+
+  if (trendChart) trendChart.destroy();
+  const ctx = document.getElementById('trend-chart').getContext('2d');
+  trendChart = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        { type: 'line', label: '売上（円）', data: salesData, borderColor: '#2e9e8f', backgroundColor: 'rgba(46,158,143,0.1)', yAxisID: 'y1', tension: 0.3, pointRadius: 4, fill: true },
+        { type: 'bar', label: '来店人数', data: visitsData, backgroundColor: 'rgba(232,131,74,0.7)', yAxisID: 'y2' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+      scales: {
+        y1: { position: 'left', ticks: { callback: v => '¥'+v.toLocaleString(), font: { size: 10 } } },
+        y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ===== カレンダー =====
+function renderCalendar() {
+  const year = currentCalendarYear;
+  const month = currentCalendarMonth;
+  document.getElementById('calendar-title').textContent = `${year}年${month+1}月`;
+
+  // 当月の日別売上を集計
+  const daySales = {};
+  records.forEach(r => {
+    if (r._date && r._date.getFullYear()===year && r._date.getMonth()===month) {
+      const d = r._date.getDate();
+      daySales[d] = (daySales[d]||0) + r._total;
+    }
+  });
+
+  const today = new Date();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  // 月曜始まり
+  let startDow = firstDay.getDay(); // 0=日
+  startDow = startDow === 0 ? 6 : startDow - 1; // 月曜=0
+
+  const grid = document.getElementById('calendar-grid');
+  grid.innerHTML = '';
+
+  // 前月の空白
+  for (let i = 0; i < startDow; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day other-month';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===d;
+    if (isToday) el.classList.add('today');
+
+    const numEl = document.createElement('div');
+    numEl.className = 'cal-day-num';
+    numEl.textContent = d;
+    if (isToday) numEl.style.fontWeight = '900';
+    el.appendChild(numEl);
+
+    if (daySales[d]) {
+      const sEl = document.createElement('div');
+      sEl.className = 'cal-sales';
+      sEl.textContent = '¥' + daySales[d].toLocaleString();
+      el.appendChild(sEl);
+    }
+
+    el.addEventListener('click', () => showDaily(year, month, d));
+    grid.appendChild(el);
+  }
+}
+
+function changeMonth(delta) {
+  currentCalendarMonth += delta;
+  if (currentCalendarMonth > 11) { currentCalendarMonth = 0; currentCalendarYear++; }
+  if (currentCalendarMonth < 0) { currentCalendarMonth = 11; currentCalendarYear--; }
+  renderCalendar();
+  updateMonthStats(currentCalendarYear, currentCalendarMonth);
+}
+
+// ===== 日次詳細 =====
+function showDaily(year, month, day) {
+  previousPage = document.querySelector('.page.active').id.replace('page-','');
+  currentDailyDate = new Date(year, month, day);
+  const dateKey = getDateKey(currentDailyDate);
+  const dow = WEEKDAYS[currentDailyDate.getDay()];
+  document.getElementById('daily-date-title').textContent = `${year}年${month+1}月${day}日（${dow}）`;
+
+  const dayRecs = records.filter(r => r._date && getDateKey(r._date)===dateKey);
+  const totalSales = dayRecs.reduce((s,r)=>s+r._total,0);
+  const totalVisits = dayRecs.reduce((s,r)=>s+r._people,0);
+  document.getElementById('daily-sales').textContent = formatYen(totalSales);
+  document.getElementById('daily-visits').textContent = totalVisits + '人';
+  document.getElementById('daily-groups').textContent = dayRecs.length + '組';
+
+  const isBiz = businessDays[dateKey] !== false;
+  document.getElementById('business-day-badge').textContent = isBiz ? '営業日' : '休業日';
+  document.getElementById('business-day-badge').className = 'badge ' + (isBiz ? 'badge-open' : 'badge-closed');
+  document.getElementById('toggle-biz-btn').textContent = isBiz ? '休業日に変更' : '営業日に変更';
+
+  const container = document.getElementById('daily-records');
+  container.innerHTML = '';
+  if (dayRecs.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0;">この日の伝票データはありません</div>';
+  } else {
+    dayRecs.forEach((r, idx) => {
+      const card = document.createElement('div');
+      card.className = 'detail-card';
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:15px;font-weight:600;">${r['顧客名'] || '不明'}</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sm btn-accent" onclick="openEdit(${records.indexOf(r)})">編集</button>
+          </div>
+        </div>
+        <div class="detail-card-row">
+          <span class="detail-tag">人数 ${(()=>{ const base=parseInt(r['人数']||0); const comp=r['同行者']?(r['同行者'].split(/[,、，]/).filter(s=>s.trim()).length):0; return base+comp; })()}人${r['同行者']?'（同行者'+r['同行者'].split(/[,、，]/).filter(s=>s.trim()).length+'人含む）':''}</span>
+          <span class="detail-tag highlight">¥${parseInt(r['合計']||0).toLocaleString()}</span>
+          ${r['ボトル'] ? `<span class="detail-tag">🍾 ${r['ボトル']}</span>` : ''}
+          ${r['炭酸'] ? `<span class="detail-tag">🫧 炭酸あり</span>` : ''}
+        </div>
+        ${r['その他'] ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">その他: ${r['その他']}</div>` : ''}
+        ${r['同行者'] ? `<div style="font-size:12px;color:var(--muted);margin-top:2px;">同行者: ${r['同行者']}</div>` : ''}
+        ${r['備考'] ? `<div style="font-size:12px;color:var(--muted);margin-top:2px;">備考: ${r['備考']}</div>` : ''}
+      `;
+      container.appendChild(card);
+    });
+  }
+  showPage('daily');
+}
+
+function toggleBusinessDay() {
+  if (!currentDailyDate) return;
+  const key = getDateKey(currentDailyDate);
+  const current = businessDays[key] !== false;
+  businessDays[key] = !current;
+  const isBiz = !current;
+  document.getElementById('business-day-badge').textContent = isBiz ? '営業日' : '休業日';
+  document.getElementById('business-day-badge').className = 'badge ' + (isBiz ? 'badge-open' : 'badge-closed');
+  document.getElementById('toggle-biz-btn').textContent = isBiz ? '休業日に変更' : '営業日に変更';
+}
+
+// ===== 月次実績 =====
+function showMonthly() {
+  const year = currentCalendarYear;
+  const month = currentCalendarMonth;
+  document.getElementById('monthly-title').textContent = `${year}年${month+1}月 月次実績`;
+  const lastDay = new Date(year, month+1, 0).getDate();
+  const tbody = document.getElementById('monthly-table-body');
+  tbody.innerHTML = '';
+  for (let d = 1; d <= lastDay; d++) {
+    const date = new Date(year, month, d);
+    const dateKey = getDateKey(date);
+    const dayRecs = records.filter(r => r._date && getDateKey(r._date)===dateKey);
+    const sales = dayRecs.reduce((s,r)=>s+r._total,0);
+    const visits = dayRecs.reduce((s,r)=>s+r._people,0);
+    const dow = WEEKDAYS[date.getDay()];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${month+1}月${d}日</td>
+      <td>${dow}</td>
+      <td>${sales > 0 ? formatYen(sales) : '-'}</td>
+      <td>${visits > 0 ? visits+'人' : '-'}</td>
+      <td>${dayRecs.length > 0 ? dayRecs.length+'組' : '-'}</td>
+      <td>${dayRecs.length > 0 ? `<button class="btn-sm btn-accent" onclick="showDaily(${year},${month},${d})">詳細</button>` : ''}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  showPage('monthly');
+}
+
+// ===== 過去実績 =====
+function updateHistory() {
+  const monthSet = new Set();
+  records.forEach(r => { if(r._date) monthSet.add(getMonthKey(r._date)); });
+  const months = [...monthSet].sort().reverse();
+
+  const tbody = document.getElementById('history-table-body');
+  tbody.innerHTML = '';
+
+  const allNames = new Set();
+  months.forEach(mk => {
+    const [y, m] = mk.split('-').map(Number);
+    const prevRecs = records.filter(r => r._date && getMonthKey(r._date) < mk);
+    const prevNames = new Set(prevRecs.map(r=>r['顧客名']));
+    const mRecs = records.filter(r => r._date && getMonthKey(r._date)===mk);
+    const sales = mRecs.reduce((s,r)=>s+r._total,0);
+    const visits = mRecs.reduce((s,r)=>s+r._people,0);
+    const mNames = new Set(mRecs.map(r=>r['顧客名']));
+    // 新規 = その月の顧客のうち過去に来店したことがない顧客
+    const newCount = [...mNames].filter(n=>n&&!prevNames.has(n)).length;
+    // リピート率 = その月の来店顧客のうち過去に来店したことがある顧客の割合
+    const repeatCustomers = [...mNames].filter(n=>n&&prevNames.has(n)).length;
+    const repeatRate = mNames.size > 0 ? Math.round(repeatCustomers / mNames.size * 100) : 0;
+    mNames.forEach(n=>allNames.add(n));
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${y}年${m}月</td>
+      <td>${formatYen(sales)}</td>
+      <td>${visits}人</td>
+      <td>${mNames.size}人</td>
+      <td>${newCount}人</td>
+      <td>${repeatRate}%</td>
+      <td>${mRecs.length}組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=${y};currentCalendarMonth=${m-1};showMonthly()">月次詳細</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ===== ふりがな辞書 =====
+const furiganaDict = {
+  "球ちゃん":"きゅうちゃん","橋元":"はしもと","九鬼C":"くき","慶くん":"けいくん",
+  "後藤":"ごとう","山口":"やまぐち","受川":"うけがわ","初芝":"はつしば",
+  "緒方":"おがた","上農":"うえの","杉村":"すぎむら","西の":"にしの",
+  "西野くん":"にしのくん","先生":"せんせい","浅の":"あさの","前ちゃん":"まえちゃん",
+  "前田C":"まえだ","村上":"むらかみ","大坪":"おおつぼ","田村":"たむら",
+  "番しょう":"ばんしょう","福井":"ふくい","鳴橋C":"はるはし","木村":"きむら","柳":"やなぎ"
+};
+
+// ひらがな1文字 → 該当する顧客名リストを返す
+function getCandidatesByKana(kana) {
+  const allNames = [...new Set(records.map(r => r['顧客名']).filter(Boolean))];
+  return allNames.filter(name => {
+    const reading = furiganaDict[name] || name; // 辞書になければ名前そのまま
+    return reading.startsWith(kana);
+  });
+}
+
+function onNameInput() {
+  const val = document.getElementById('search-name').value.trim();
+  const box = document.getElementById('name-candidates');
+  // ひらがな1文字のみ候補表示
+  if (/^[ぁ-ん]$/.test(val)) {
+    const candidates = getCandidatesByKana(val);
+    if (candidates.length > 0) {
+      box.innerHTML = candidates.map(n =>
+        `<div style="padding:8px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);"
+          onmousedown="selectCandidate('${n}')">${n}<span style="color:var(--muted);font-size:11px;margin-left:6px;">${furiganaDict[n]||''}</span></div>`
+      ).join('');
+      box.style.display = 'block';
+      return;
+    }
+  }
+  box.style.display = 'none';
+}
+
+function selectCandidate(name) {
+  document.getElementById('search-name').value = name;
+  hideNameCandidates();
+}
+
+function hideNameCandidates() {
+  document.getElementById('name-candidates').style.display = 'none';
+}
+
+// ===== 通常検索 =====
+function doSearch() {
+  const name = document.getElementById('search-name').value.trim();
+  const date = document.getElementById('search-date').value.trim();
+  const results = records.filter(r => {
+    if (name && !r['顧客名'].includes(name)) return false;
+    if (date) {
+      const recDate = (r['日付'] || '').replace(/\s/g,'');
+      const searchDate = date.replace(/\s/g,'');
+      if (!recDate.includes(searchDate)) return false;
+    }
+    return true;
+  }).sort((a, b) => (b._date || 0) - (a._date || 0));
+
+  // 顧客名のみで検索した場合はサマリーカードを表示
+  const summaryEl = document.getElementById('customer-summary');
+  if (name && !date && results.length > 0) {
+    const totalAmount = results.reduce((s, r) => s + r._total, 0);
+    const sorted = [...results].sort((a, b) => (a._date || 0) - (b._date || 0));
+    document.getElementById('summary-name').textContent = name;
+    document.getElementById('summary-first').textContent = sorted[0]['日付'] || '-';
+    document.getElementById('summary-last').textContent = results[0]['日付'] || '-';
+    document.getElementById('summary-count').textContent = results.length + '回';
+    document.getElementById('summary-total').textContent = formatYen(totalAmount);
+    // ボトルがある最新レコードを探す
+    const latestBottle = results.find(r => r['ボトル'] && r['ボトル'].trim() !== '');
+    document.getElementById('summary-bottle').textContent = latestBottle ? latestBottle['ボトル'] : '-';
+    summaryEl.style.display = 'block';
+  } else {
+    summaryEl.style.display = 'none';
+  }
+
+  const tbody = document.getElementById('search-results');
+  tbody.innerHTML = '';
+  results.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r['日付']||''}</td><td>${r['顧客名']||''}</td><td>${r['人数']||''}</td>
+      <td>${r['合計']?formatYen(r['合計']):''}</td><td>${r['ボトル']||''}</td>
+      <td>${r['炭酸']||''}</td><td>${r['その他']||''}</td><td>${r['備考']||''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  if (results.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">該当データなし</td></tr>';
+  }
+}
+
+function clearSearch() {
+  document.getElementById('search-name').value = '';
+  document.getElementById('search-date').value = '';
+  document.getElementById('search-results').innerHTML = '';
+  document.getElementById('customer-summary').style.display = 'none';
+  hideNameCandidates();
+}
+
+// ===== ボトル検索 =====
+function doBottleSearch() {
+  const bottle = document.getElementById('search-bottle').value.trim();
+  // ボトルが空欄でないレコードを対象
+  const bottleRecords = records.filter(r => r['ボトル'] && r['ボトル'].trim() !== '');
+  // ボトル名フィルター
+  const filtered = bottle
+    ? bottleRecords.filter(r => r['ボトル'].includes(bottle))
+    : bottleRecords;
+
+  // 顧客ごとに最新1件のみ残す
+  const latestByName = {};
+  filtered.forEach(r => {
+    const name = r['顧客名'] || '';
+    if (!latestByName[name] || (r._date && (!latestByName[name]._date || r._date > latestByName[name]._date))) {
+      latestByName[name] = r;
+    }
+  });
+
+  // 新しい順にソート
+  const results = Object.values(latestByName).sort((a, b) => (b._date || 0) - (a._date || 0));
+
+  const tbody = document.getElementById('bottle-results');
+  tbody.innerHTML = '';
+  results.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r['日付']||''}</td><td>${r['顧客名']||''}</td><td>${r['ボトル']||''}</td>
+      <td>${r['合計']?formatYen(r['合計']):''}</td><td>${r['炭酸']||''}</td>
+      <td>${r['その他']||''}</td><td>${r['備考']||''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  if (results.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px;">該当データなし</td></tr>';
+  }
+}
+
+function clearBottleSearch() {
+  document.getElementById('search-bottle').value = '';
+  document.getElementById('bottle-results').innerHTML = '';
+}
+
+// ===== 編集モーダル =====
+function openEdit(idx) {
+  editingIndex = idx;
+  const r = records[idx];
+  document.getElementById('edit-date').value = r['日付']||'';
+  document.getElementById('edit-name').value = r['顧客名']||'';
+  document.getElementById('edit-people').value = r['人数']||'';
+  document.getElementById('edit-total').value = r['合計']||'';
+  document.getElementById('edit-bottle').value = r['ボトル']||'';
+  document.getElementById('edit-soda').value = r['炭酸']||'';
+  document.getElementById('edit-other').value = r['その他']||'';
+  document.getElementById('edit-note').value = r['備考']||'';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function saveEdit() {
+  if (editingIndex < 0) return;
+  const r = records[editingIndex];
+  r['日付'] = document.getElementById('edit-date').value;
+  r['顧客名'] = document.getElementById('edit-name').value;
+  r['人数'] = document.getElementById('edit-people').value;
+  r['合計'] = document.getElementById('edit-total').value;
+  r['ボトル'] = document.getElementById('edit-bottle').value;
+  r['炭酸'] = document.getElementById('edit-soda').value;
+  r['その他'] = document.getElementById('edit-other').value;
+  r['備考'] = document.getElementById('edit-note').value;
+  r._date = parseJpDate(r['日付']);
+  r._total = parseInt(r['合計'])||0;
+  r._people = parseInt(r['人数'])||0;
+  closeModal();
+  updateDashboard();
+  // 現在の日次詳細を再表示
+  if (currentDailyDate) {
+    showDaily(currentDailyDate.getFullYear(), currentDailyDate.getMonth(), currentDailyDate.getDate());
+  }
+}
+
+// ===== ページ切り替え =====
+const pageTitles = {
+  top: 'ダッシュボード', daily: '日次詳細',
+  monthly: '月次実績', history: '過去の実績',
+  upload: 'データ読み込み', search: '検索', analytics: '分析', receipt: '伝票入力'
+};
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[name]||'';
+  // サイドバーナビ
+  const navMap = { top: 0, history: 1, analytics: 2, search: 3, receipt: 4, upload: 5 };
+  if (navMap[name] !== undefined) {
+    document.querySelectorAll('.nav-item')[navMap[name]].classList.add('active');
+  }
+  // ボトムナビ
+  ['top','history','analytics','search','receipt','upload'].forEach(p => {
+    const el = document.getElementById('bn-'+p);
+    if (el) el.classList.toggle('active', p === name);
+  });
+  // 分析ページ初期化
+  if (name === 'analytics') {
+    initAnalytics();
+  }
+  // ページトップにスクロール
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  if (previousPage && previousPage !== 'daily') showPage(previousPage);
+  else showPage('top');
+}
+
+// ===== Supabase データ保存 =====
+async function saveToSupabase(newRecords) {
+  try {
+    // upsert（重複はスキップ）
+    const rows = newRecords.map(r => ({
+      日付: r['日付'] || '',
+      顧客名: r['顧客名'] || '',
+      人数: r._people || 0,
+      合計: r._total || 0,
+      ボトル: r['ボトル'] || '',
+      炭酸: r['炭酸'] || '',
+      その他: r['その他'] || '',
+      精度: r['精度'] || '',
+      備考: r['備考'] || ''
+    }));
+    const { error } = await sbClient.from('hareru_records').insert(rows);
+    if (error) console.error('Supabase保存エラー:', error);
+  } catch(e) {
+    console.error('Supabase保存例外:', e);
+  }
+}
+
+async function loadFromSupabase() {
+  try {
+    const { data, error } = await sbClient
+      .from('hareru_records')
+      .select('*')
+      .order('id', { ascending: true });
+    if (error) { console.error('Supabase読み込みエラー:', error); return; }
+    records = (data || []).map(r => ({
+      '日付': r['日付'] || '',
+      '顧客名': r['顧客名'] || '',
+      '人数': String(r['人数'] || ''),
+      '合計': String(r['合計'] || ''),
+      'ボトル': r['ボトル'] || '',
+      '炭酸': r['炭酸'] || '',
+      'その他': r['その他'] || '',
+      '同行者': r['同行者'] || '',
+      '精度': r['精度'] || '',
+      '備考': r['備考'] || '',
+      _date: parseJpDate(r['日付']),
+      _total: r['合計'] || 0,
+      _people: r['人数'] || 0,
+      _id: r.id
+    }));
+    records.sort((a,b) => (a._date||0) - (b._date||0));
+  } catch(e) {
+    console.error('Supabase読み込み例外:', e);
+  }
+}
+
+// ===== 初期化 =====
+async function init() {
+  const now = new Date();
+  document.getElementById('current-date').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${WEEKDAYS[now.getDay()]}）`;
+
+  // カレンダーを当月に確実にリセット
+  currentCalendarYear  = now.getFullYear();
+  currentCalendarMonth = now.getMonth();
+
+  // Supabaseからデータ読み込み
+  document.getElementById('upload-status').textContent = '📡 データを読み込み中...';
+  await loadFromSupabase();
+
+  if (records.length > 0) {
+    updateDashboard();
+    updateLoadedSummary();
+  } else {
+    renderCalendar();
+  }
+  document.getElementById('upload-status').textContent = '';
+  renderUploadHistory();
+}
+
+// saveToStorage を編集保存時にも呼ぶ
+const _origSaveEdit = saveEdit;
+saveEdit = function() {
+  _origSaveEdit();
+  saveToStorage();
+};
+
+// 認証なしで直接init
+init();
+
+/* ============================================================
+   分析機能 JavaScript
+   ============================================================ */
+(function() {
+  const WD     = ['月','火','水','木','金','土','日'];
+  const SCLR   = ['#5c6bc0','#5c6bc0','#5c6bc0','#5c6bc0','#e8734a','#e8734a','#9c27b0'];
+  const VCLR   = ['#2e9e8f','#2e9e8f','#2e9e8f','#2e9e8f','#ffa726','#ffa726','#ef5350'];
+  const MEDAL  = ['🥇','🥈','🥉'];
+  const bc = i => i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+  const bl = i => i<3 ? MEDAL[i] : i+1;
+  const ym = d => (d||'').slice(0,7);
+
+  let anWdMode   = 'all';
+  let anRankType = 'visits';
+  let anInited   = false;
+  // 月別ナビ用：現在表示中の年月
+  let anNavYear  = new Date().getFullYear();
+  let anNavMonth = new Date().getMonth(); // 0-indexed
+
+  // タブ切替
+  window.anSwitchTab = function(id, btn) {
+    document.querySelectorAll('#page-analytics .an-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#page-analytics .an-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('an-' + id).classList.add('active');
+  };
+
+  // 期間切替
+  window.anSetWdMode = function(mode, btn) {
+    anWdMode = mode;
+    document.querySelectorAll('#an-weekday .an-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // 月別ナビの表示切替（現在月にリセット）
+    if (mode === 'month') {
+      anNavYear  = new Date().getFullYear();
+      anNavMonth = new Date().getMonth();
+      document.getElementById('an-month-nav').style.display = '';
+    } else {
+      document.getElementById('an-month-nav').style.display = 'none';
+    }
+    anRenderWeekday();
+  };
+
+  // 月ナビ：前後移動
+  window.anChangeMonth = function(delta) {
+    anNavMonth += delta;
+    if (anNavMonth > 11) { anNavMonth = 0; anNavYear++; }
+    if (anNavMonth < 0)  { anNavMonth = 11; anNavYear--; }
+    // データが存在する月のみ（なければそのまま表示）
+    anRenderWeekday();
+  };
+
+  // ランキング種別切替
+  window.anSetRankType = function(type, btn) {
+    anRankType = type;
+    document.querySelectorAll('.an-stab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    anRenderRankAll();
+  };
+
+  // 月セレクタ構築
+  function buildMonthSel() {
+    const months = [...new Set(records.map(r => ym(r['日付']||'') ))].filter(m=>m.length===7).sort().reverse();
+    const sel = document.getElementById('an-wd-sel');
+    sel.innerHTML = months.map(m => `<option value="${m}">${m.replace('-','年')}月</option>`).join('');
+  }
+
+  // 月リスト取得
+  function getMonths() {
+    return [...new Set(records.map(r => ym(r['日付']||'')))].filter(m=>m.length===7).sort().reverse();
+  }
+
+  /* ---- 曜日別（平均組数・最多組数・月別ナビ対応） ---- */
+  window.anRenderWeekday = function() {
+    let recs;
+    if (anWdMode === 'all') {
+      recs = records;
+    } else {
+      // 月別：anNavYear/anNavMonthで絞り込み
+      const ymKey = `${anNavYear}-${String(anNavMonth+1).padStart(2,'0')}`;
+      recs = records.filter(r => ym(r['日付']||'') === ymKey);
+      document.getElementById('an-month-nav-label').textContent =
+        `${anNavYear}年${anNavMonth+1}月`;
+    }
+
+    // 曜日ごと: dates=営業日Set, totS=売上合計, totV=人数合計, totG=組数合計
+    // sbd/vbd/gbd = 日付ごとの集計（最大値計算用）
+    const dm = {};
+    WD.forEach((_,i) => dm[i]={dates:new Set(),totS:0,totV:0,totG:0,sbd:{},vbd:{},gbd:{}});
+
+    recs.forEach(r => {
+      const dateStr = r['日付']||'';
+      if (!dateStr) return;
+      let dt;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        dt = new Date(dateStr + 'T00:00:00');
+      } else {
+        dt = r._date;
+      }
+      if (!dt) return;
+      const jd = dt.getDay();
+      const wi = jd===0 ? 6 : jd-1;
+      const dateKey = dateStr.slice(0,10);
+      const s = parseInt(r['合計']||r._total||0);
+      const v = parseInt(r['人数']||r._people||0);
+      dm[wi].dates.add(dateKey);
+      dm[wi].totS += s;
+      dm[wi].totV += v;
+      dm[wi].totG += 1; // 伝票1件=1組
+      dm[wi].sbd[dateKey] = (dm[wi].sbd[dateKey]||0) + s;
+      dm[wi].vbd[dateKey] = (dm[wi].vbd[dateKey]||0) + v;
+      dm[wi].gbd[dateKey] = (dm[wi].gbd[dateKey]||0) + 1; // 日付ごとの組数
+    });
+
+    const st = WD.map((lbl,i) => {
+      const d=dm[i], op=d.dates.size;
+      const sv=Object.values(d.sbd);
+      const vv=Object.values(d.vbd);
+      const gv=Object.values(d.gbd);
+      return {
+        lbl, op,
+        avgS: op ? Math.round(d.totS/op) : 0,
+        maxS: sv.length ? Math.max(...sv) : 0,
+        avgV: op ? Math.round(d.totV/op) : 0,
+        maxV: vv.length ? Math.max(...vv) : 0,
+        avgG: op ? Math.round(d.totG/op*10)/10 : 0, // 小数1桁
+        maxG: gv.length ? Math.max(...gv) : 0,
+      };
+    });
+
+    anDrawBar('an-sales-chart', st, 'avgS', SCLR, v=>v>=10000?`¥${Math.round(v/1000)}k`:`¥${v.toLocaleString()}`);
+    anDrawBar('an-vis-chart',   st, 'avgV', VCLR, v=>`${v}人`);
+
+    document.getElementById('an-wd-tbody').innerHTML = st.map(s=>`
+      <tr>
+        <td><strong>${s.lbl}</strong></td>
+        <td>${s.op}日</td>
+        <td>${s.op?'¥'+s.avgS.toLocaleString():'-'}</td>
+        <td>${s.op?'¥'+s.maxS.toLocaleString():'-'}</td>
+        <td>${s.op?s.avgV+'人':'-'}</td>
+        <td>${s.op?s.maxV+'人':'-'}</td>
+        <td>${s.op?s.avgG+'組':'-'}</td>
+        <td>${s.op?s.maxG+'組':'-'}</td>
+      </tr>`).join('');
+  };
+
+  function anDrawBar(id, stats, key, colors, fmt) {
+    const el=document.getElementById(id); if(!el)return;
+    const mx=Math.max(...stats.map(s=>s[key]),1);
+    el.innerHTML=stats.map((s,i)=>`
+      <div class="an-bar-col">
+        <div class="an-bar-val">${s.op?fmt(s[key]):''}</div>
+        <div class="an-bar-body" style="height:${Math.round(s[key]/mx*100)}%;background:${colors[i]};opacity:${s.op?.85:.12}"></div>
+        <div class="an-bar-lbl">${s.lbl}</div>
+      </div>`).join('');
+  }
+
+  /* ---- 全期間ランキング（2回以上来店・全員・クリックで詳細） ---- */
+  window.anRenderRankAll = function() {
+    const isV = anRankType==='visits';
+    const map = {};
+    records.forEach(r => {
+      const n=(r['顧客名']||'').trim(); if(!n)return;
+      const dateStr = (r['日付']||'').slice(0,10);
+      if(!map[n]) map[n]={visits:0,amount:0,first:'',last:''};
+      map[n].visits++;
+      map[n].amount += parseInt(r['合計']||r._total||0);
+      if(!map[n].first || dateStr < map[n].first) map[n].first = dateStr;
+      if(!map[n].last  || dateStr > map[n].last)  map[n].last  = dateStr;
+    });
+
+    const sorted = Object.entries(map)
+      .map(([name,d])=>({name,...d}))
+      .filter(c => c.visits >= 2)
+      .sort((a,b)=>isV?b.visits-a.visits:b.amount-a.amount);
+
+    const fmtD = s => s ? s.slice(5).replace('-','/') : '-'; // MM/DD形式
+
+    const el = document.getElementById('an-rank-all');
+    if (sorted.length === 0) {
+      el.innerHTML = '<div class="an-empty">2回以上来店の顧客がいません</div>';
+      return;
+    }
+    el.innerHTML = sorted.map((c,i)=>{
+      const val  = isV?c.visits:c.amount;
+      const vLbl = isV?`${val}回`:`¥${val.toLocaleString()}`;
+      const sLbl = isV?`累計 ¥${c.amount.toLocaleString()}`:`${c.visits}回来店`;
+      return `
+        <div class="an-rank-item" style="cursor:pointer;" onclick="anOpenCustomer('${c.name.replace(/'/g,"\'")}')">
+          <div class="an-rbadge ${bc(i)}">${bl(i)}</div>
+          <div class="an-rinfo">
+            <div class="an-rname" style="color:var(--accent);text-decoration:underline dotted;">${c.name}</div>
+            <div class="an-rsub">${sLbl}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">
+              初回 ${fmtD(c.first)}　直近 ${fmtD(c.last)}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div class="an-rval-main">${vLbl}</div>
+          </div>
+        </div>`;
+    }).join('');
+  };
+
+  /* ---- 顧客詳細モーダル ---- */
+  window.anOpenCustomer = function(name) {
+    const recs = records
+      .filter(r => (r['顧客名']||'').trim() === name)
+      .sort((a,b) => (b['日付']||'') > (a['日付']||'') ? 1 : -1); // 新しい順
+
+    if (recs.length === 0) return;
+
+    const total  = recs.reduce((s,r)=>s+parseInt(r['合計']||r._total||0),0);
+    const dates  = recs.map(r=>(r['日付']||'').slice(0,10)).filter(Boolean);
+    const first  = dates.length ? [...dates].sort()[0] : '';
+    const last   = dates.length ? [...dates].sort().reverse()[0] : '';
+    const fmtD   = s => s ? s.slice(5).replace('-','/') : '-';
+
+    // 現在のボトル（最新来店のボトル）
+    const latestBottle = recs.find(r=>(r['ボトル']||'').trim());
+    const bottleTxt = latestBottle ? latestBottle['ボトル'] : 'なし';
+
+    document.getElementById('an-cust-name').textContent  = name;
+    document.getElementById('an-cust-dates').textContent = `初回 ${fmtD(first)}　直近 ${fmtD(last)}`;
+    document.getElementById('an-cust-visits').textContent = recs.length + '回';
+    document.getElementById('an-cust-amount').textContent = '¥' + total.toLocaleString();
+    document.getElementById('an-cust-bottle').textContent = bottleTxt;
+
+    // 来店履歴（新しい順）
+    document.getElementById('an-cust-records').innerHTML = recs.map(r => {
+      const d = (r['日付']||'').slice(5).replace('-','/');
+      const bottle = r['ボトル'] ? ` 🍾${r['ボトル']}` : '';
+      const soda   = r['炭酸']   ? ' 🫧炭酸' : '';
+      const comp   = r['同行者'] ? ` 同行者:${r['同行者']}` : '';
+      return `
+        <div class="an-crec">
+          <div class="an-crec-date">${d}</div>
+          <div class="an-crec-info">${r['人数']}人${bottle}${soda}${comp}</div>
+          <div class="an-crec-amount">¥${parseInt(r['合計']||r._total||0).toLocaleString()}</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('an-customer-modal').classList.add('open');
+  };
+
+  window.anCloseCustomer = function(e) {
+    if (e.target === document.getElementById('an-customer-modal')) {
+      document.getElementById('an-customer-modal').classList.remove('open');
+    }
+  };
+  window.anCloseCustomerDirect = function() {
+    document.getElementById('an-customer-modal').classList.remove('open');
+  };
+
+  /* ---- 月別来店ランキング ---- */
+  function anRenderRankMonthly() {
+    const months = getMonths();
+    document.getElementById('an-rank-monthly').innerHTML = months.map(m=>{
+      const recs = records.filter(r=>ym(r['日付']||'')===m);
+      const mp={};
+      recs.forEach(r=>{ const n=(r['顧客名']||'').trim(); if(n) mp[n]=(mp[n]||0)+1; });
+      const sorted=Object.entries(mp).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      const rows=sorted.length
+        ? sorted.map(([name,cnt],i)=>`
+            <div class="an-mrow">
+              <div class="an-mnum ${bc(i)}">${bl(i)}</div>
+              <div class="an-mname">${name}</div>
+              <div class="an-mval">${cnt}回</div>
+            </div>`).join('')
+        : `<div class="an-empty">データなし</div>`;
+      return `<div class="an-mcard"><div class="an-mlabel">${m.replace('-','年')}月</div>${rows}</div>`;
+    }).join('');
+  }
+
+  /* ---- ボトルランキング ---- */
+  function bottleMap(recs) {
+    const m={};
+    recs.forEach(r=>{ const b=(r['ボトル']||'').trim(); if(b) m[b]=(m[b]||0)+1; });
+    return m;
+  }
+
+  function anRenderBottleAll() {
+    const sorted=Object.entries(bottleMap(records)).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const top=sorted[0]?.[1]||1;
+    document.getElementById('an-bottle-all').innerHTML = sorted.length
+      ? sorted.map(([bname,cnt],i)=>{
+          // 直近持ち主：このボトルを持つ顧客のうち最新来店日の人
+          const owners = {};
+          records.filter(r=>(r['ボトル']||'').trim()===bname).forEach(r=>{
+            const n=(r['顧客名']||'').trim(); if(!n)return;
+            const d=(r['日付']||'').slice(0,10);
+            if(!owners[n]||d>owners[n]) owners[n]=d;
+          });
+          // 最新来店日順にソート
+          const ownerList = Object.entries(owners)
+            .sort((a,b)=>b[1]>a[1]?1:-1)
+            .slice(0,3)
+            .map(([n,d])=>`${n}（${d.slice(5).replace('-','/')}）`)
+            .join('、');
+          const oid = 'an-bowner-'+i;
+          return `
+          <div class="an-bitem" style="flex-wrap:wrap;">
+            <div class="an-bbadge ${bc(i)}">${bl(i)}</div>
+            <div class="an-bname" style="cursor:pointer;color:var(--accent);text-decoration:underline dotted;"
+              onclick="anToggleBottleOwner('${oid}')">${bname}</div>
+            <div class="an-bbar-wrap"><div class="an-bbar-fill" style="width:${Math.round(cnt/top*100)}%"></div></div>
+            <div style="text-align:right;">
+              <div class="an-bcount">${cnt}<span class="an-bunit"> 本</span></div>
+            </div>
+            <div class="an-bottle-owner" id="${oid}" style="width:100%;">
+              <strong>直近の持ち主：</strong>${ownerList||'不明'}
+            </div>
+          </div>`;
+        }).join('')
+      : `<div class="an-empty">ボトルデータがありません</div>`;
+  }
+
+  window.anToggleBottleOwner = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('open');
+  };
+
+  function anRenderBottleMonthly() {
+    const months = getMonths();
+    document.getElementById('an-bottle-monthly').innerHTML = months.map(m=>{
+      const recs = records.filter(r=>ym(r['日付']||'')===m);
+      // ボトルあり件数（空欄除く）
+      const bottleRecs = recs.filter(r=>(r['ボトル']||'').trim());
+      const totalBottles = bottleRecs.length; // この月の総ボトル本数
+      // ボトル銘柄別集計→ベスト3
+      const bmap = bottleMap(recs);
+      const sorted = Object.entries(bmap).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      const rows = sorted.length
+        ? sorted.map(([name,cnt],i)=>`
+            <div class="an-mrow">
+              <div class="an-mnum ${bc(i)}">${bl(i)}</div>
+              <div class="an-mname">${name}</div>
+              <div class="an-mval">${cnt}本</div>
+            </div>`).join('')
+        : `<div style="font-size:12px;color:var(--muted);padding:6px 0;">ボトルなし</div>`;
+      return `
+        <div class="an-mcard">
+          <div class="an-mlabel">${m.replace('-','年')}月</div>
+          <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px;">
+            合計 ${totalBottles}本
+          </div>
+          ${rows}
+        </div>`;
+    }).join('');
+  }
+
+  /* ---- 分析ページ初期化（showPage('analytics') 時に呼ばれる） ---- */
+  window.initAnalytics = function() {
+    buildMonthSel();
+    // 月別ナビを現在月にリセット
+    anNavYear  = new Date().getFullYear();
+    anNavMonth = new Date().getMonth();
+    anRenderWeekday();
+    anRenderRankAll();
+    anRenderRankMonthly();
+    anRenderBottleAll();
+    anRenderBottleMonthly();
+  };
+
+})();
+/* ============================================================
+   /分析機能 JavaScript
+   ============================================================ */
+
+
+/* ============================================================
+   伝票入力機能 JavaScript
+   ============================================================ */
+(function() {
+  let receiptFiles = [];      // 選択された画像ファイル
+  let receiptResults = [];    // AI解析結果
+
+  // ---- ファイル選択 ----
+  window.onReceiptFilesSelected = function(event) {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    receiptFiles = [...receiptFiles, ...files];
+    renderReceiptPreviews();
+    document.getElementById('receipt-analyze-btn').style.display = '';
+  };
+
+  function renderReceiptPreviews() {
+    const grid = document.getElementById('receipt-preview-grid');
+    grid.innerHTML = receiptFiles.map((f, i) => {
+      const url = URL.createObjectURL(f);
+      return `
+        <div class="receipt-preview-item">
+          <img class="receipt-preview-img" src="${url}" alt="${f.name}">
+          <button class="receipt-preview-remove" onclick="removeReceiptFile(${i})">×</button>
+          <div class="receipt-preview-label">${f.name}</div>
+        </div>`;
+    }).join('');
+  }
+
+  window.removeReceiptFile = function(idx) {
+    receiptFiles.splice(idx, 1);
+    renderReceiptPreviews();
+    if (receiptFiles.length === 0) {
+      document.getElementById('receipt-analyze-btn').style.display = 'none';
+    }
+  };
+
+  // ---- AI解析 ----
+  window.analyzeReceipts = async function() {
+    if (!receiptFiles.length) return;
+
+    const btn = document.getElementById('receipt-analyze-btn');
+    btn.disabled = true;
+    btn.textContent = '🤖 解析中...';
+
+    const statusArea = document.getElementById('receipt-status-area');
+    const resultsArea = document.getElementById('receipt-results-area');
+    statusArea.innerHTML = '';
+    resultsArea.innerHTML = '';
+    receiptResults = [];
+
+    for (let i = 0; i < receiptFiles.length; i++) {
+      const file = receiptFiles[i];
+      const statusId = 'status-' + i;
+      statusArea.innerHTML += `
+        <div class="receipt-status-card processing" id="${statusId}">
+          ⏳ ${file.name} を解析中...
+        </div>`;
+
+      try {
+        // 画像をbase64に変換
+        const base64 = await fileToBase64(file);
+        const mediaType = file.type || 'image/jpeg';
+
+        // Claude APIで解析
+        const result = await callClaudeForReceipt(base64, mediaType, file.name);
+
+        document.getElementById(statusId).className = 'receipt-status-card done';
+        document.getElementById(statusId).textContent = `✅ ${file.name} 解析完了 (${result.length}件)`;
+
+        receiptResults.push({ file: file.name, rows: result });
+      } catch(e) {
+        document.getElementById(statusId).className = 'receipt-status-card error';
+        document.getElementById(statusId).textContent = `❌ ${file.name} エラー: ${e.message}`;
+        receiptResults.push({ file: file.name, rows: [] });
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🤖 AIでデータ化する';
+    renderReceiptResults();
+  };
+
+  // ---- base64変換 ----
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---- Claude API呼び出し ----
+  async function callClaudeForReceipt(base64, mediaType, filename) {
+    // Gemini APIをブラウザから直接呼び出す
+    const GEMINI_KEY = 'AIzaSyDX72zvJ84JhEd2v_dIfDyBQcoZpJeJPpc';
+    const today = new Date();
+    const prompt = `これはバー・居酒屋「ハレル」の手書き伝票の画像です。以下のルールに従ってデータを読み取り、JSONの配列のみで返してください（説明文・マークダウン不要、[]で始まり[]で終わること）。
+
+ルール：1.顧客名から敬称除く 2.人数は数字をそのまま 3.炭酸は「あり」か空欄 4.ボトル=商品名欄の最後 5.二重横線の数字は無効 6.複数名の場合のみ分割（人数・合計を分割数で割る） 7.同行者=顧客名以外の人 8.日付は伝票から読む（年は${today.getFullYear()}か${today.getFullYear()-1}） 9.黒きり→黒霧島
+
+出力（JSONのみ）：[{"日付":"YYYY-MM-DD","曜日":"月","顧客名":"えっとん","人数":2,"合計":15000,"ボトル":"黒霧島","炭酸":"あり","その他":"","同行者":"","精度":4,"理由":""}]`;
+
+    const response = await fetch(
+      \`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=\${GEMINI_KEY}\`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [
+            { inline_data: { mime_type: mediaType, data: base64 } },
+            { text: prompt }
+          ]}],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 2000 }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error('Gemini API error: ' + JSON.stringify(err));
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // JSONを抽出（マークダウン除去）
+    let clean = text;
+    // コードブロック全体を除去
+    clean = clean.replace(/```json[\s\S]*?```/g, function(m) {
+      return m.replace(/^```json/, '').replace(/```$/, '');
+    });
+    clean = clean.replace(/```/g, '').trim();
+    // [ から ] までを抽出
+    const start = clean.indexOf('[');
+    const end = clean.lastIndexOf(']');
+    if (start < 0 || end < 0) throw new Error('JSONが見つかりません: ' + text.slice(0, 300));
+    const jsonStr = clean.slice(start, end + 1);
+    return JSON.parse(jsonStr);
+  }
+
+  // ---- 結果表示・編集 ----
+  function renderReceiptResults() {
+    const area = document.getElementById('receipt-results-area');
+    if (!receiptResults.length) return;
+
+    const allRows = receiptResults.flatMap(r => r.rows);
+    if (!allRows.length) {
+      area.innerHTML = '<div class="card"><div style="color:var(--muted);text-align:center;padding:20px;">データが読み取れませんでした</div></div>';
+      return;
+    }
+
+    area.innerHTML = `
+      <div class="card">
+        <div class="section-title">✏️ 内容を確認・修正してください</div>
+        <div class="table-scroll">
+          <table class="receipt-result-table" id="receipt-edit-table">
+            <thead>
+              <tr>
+                <th>日付</th><th>顧客名</th><th>人数</th><th>合計</th>
+                <th>ボトル</th><th>炭酸</th><th>その他</th><th>同行者</th><th>精度</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allRows.map((r, i) => `
+                <tr>
+                  <td><input value="${r.日付||''}" onchange="updateReceiptRow(${i},'日付',this.value)"></td>
+                  <td><input value="${r.顧客名||''}" onchange="updateReceiptRow(${i},'顧客名',this.value)"></td>
+                  <td><input type="number" value="${r.人数||''}" style="width:60px" onchange="updateReceiptRow(${i},'人数',this.value)"></td>
+                  <td><input type="number" value="${r.合計||''}" style="width:90px" onchange="updateReceiptRow(${i},'合計',this.value)"></td>
+                  <td><input value="${r.ボトル||''}" onchange="updateReceiptRow(${i},'ボトル',this.value)"></td>
+                  <td><input value="${r.炭酸||''}" style="width:60px" onchange="updateReceiptRow(${i},'炭酸',this.value)"></td>
+                  <td><input value="${r.その他||''}" onchange="updateReceiptRow(${i},'その他',this.value)"></td>
+                  <td><input value="${r.同行者||''}" onchange="updateReceiptRow(${i},'同行者',this.value)"></td>
+                  <td style="text-align:center;color:var(--muted)">${r.精度||'-'}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <button class="receipt-register-btn" onclick="registerReceiptData()">
+          ✅ このデータを登録する
+        </button>
+        <div id="receipt-register-status" style="margin-top:10px;font-size:13px;color:var(--accent);"></div>
+      </div>`;
+
+    // allRowsをグローバルに保持
+    window._pendingReceiptRows = allRows;
+  }
+
+  // 編集反映
+  window.updateReceiptRow = function(i, key, val) {
+    if (window._pendingReceiptRows) window._pendingReceiptRows[i][key] = val;
+  };
+
+  // ---- Supabaseに登録 ----
+  window.registerReceiptData = async function() {
+    const rows = window._pendingReceiptRows;
+    if (!rows || !rows.length) return;
+
+    const statusEl = document.getElementById('receipt-register-status');
+    statusEl.textContent = '📡 登録中...';
+
+    try {
+      const toInsert = rows.map(r => ({
+        日付: r.日付 || '',
+        顧客名: r.顧客名 || '',
+        人数: parseInt(r.人数) || 0,
+        合計: parseInt(r.合計) || 0,
+        ボトル: r.ボトル || '',
+        炭酸: r.炭酸 || '',
+        その他: r.その他 || '',
+        同行者: r.同行者 || '',
+        精度: r.精度 || '',
+        備考: r.備考 || ''
+      }));
+
+      const { error } = await sbClient.from('hareru_records').insert(toInsert);
+      if (error) throw error;
+
+      statusEl.textContent = `✅ ${toInsert.length}件を登録しました！`;
+      statusEl.style.color = '#27ae60';
+
+      // データ再読込
+      await loadFromSupabase();
+      updateDashboard();
+      updateLoadedSummary();
+
+      // 3秒後にリセット
+      setTimeout(() => {
+        receiptFiles = [];
+        receiptResults = [];
+        window._pendingReceiptRows = [];
+        document.getElementById('receipt-preview-grid').innerHTML = '';
+        document.getElementById('receipt-status-area').innerHTML = '';
+        document.getElementById('receipt-results-area').innerHTML = '';
+        document.getElementById('receipt-analyze-btn').style.display = 'none';
+        document.getElementById('receipt-file-input').value = '';
+        statusEl.textContent = '';
+      }, 3000);
+
+    } catch(e) {
+      statusEl.textContent = '❌ 登録エラー: ' + e.message;
+      statusEl.style.color = '#e74c3c';
+    }
+  };
+
+})();
+/* ============================================================
+   /伝票入力機能 JavaScript
+   ============================================================ */
+
+</script>
+</body>
+</html>
