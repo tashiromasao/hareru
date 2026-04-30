@@ -2297,11 +2297,12 @@ init();
 
   // ---- ファイル選択 ----
   window.onReceiptFilesSelected = function(event) {
-    const files = Array.from(event.target.files);
+    const input = document.getElementById('receipt-file-input');
+    const files = Array.from(input.files || event.target.files || []);
     if (!files.length) return;
-
     receiptFiles = [...receiptFiles, ...files];
     renderReceiptPreviews();
+    document.getElementById('receipt-action-row').style.display = '';
     document.getElementById('receipt-analyze-btn').style.display = '';
   };
 
