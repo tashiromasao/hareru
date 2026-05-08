@@ -2389,9 +2389,9 @@ init();
     const GEMINI_KEY = localStorage.getItem('gemini_api_key') || '';
 if (!GEMINI_KEY) { alert('Gemini APIキーが設定されていません。ダッシュボードの設定から入力してください。'); return; }
     const today = new Date();
-    const prompt = `これはバー・居酒屋「ハレル」の手書き伝票の画像です。以下のルールに従ってデータを読み取り、JSONの配列のみで返してください（説明文・マークダウン不要、[]で始まり[]で終わること）。
-
-ルール：1.顧客名から敬称除く 2.人数は数字をそのまま 3.炭酸は「あり」か空欄 4.ボトル=商品名欄の最後 5.二重横線の数字は無効 6.複数名の場合のみ分割（人数・合計を分割数で割る） 7.同行者=顧客名以外の人 8.日付は伝票から読む（年は${today.getFullYear()}か${today.getFullYear()-1}） 9.黒きり→黒霧島
+    const prompt = `You are reading a handwritten Japanese bar receipt (お会計票). Extract data and return ONLY a JSON array, no markdown, no explanation. Start with [ and end with ].
+　　Rules: 1.Date is top of receipt as month/day, year=${today.getFullYear()}, output as YYYY-MM-DD. 2.Customer name is handwritten top-right corner, remove honorifics. 3.People count is the number in 数量 column on same row as bottle. 4.Total is the large number in 税込合計金額 box. 5.Bottle is first item in 品名 column. 6.Set 炭酸 to "あり" if ソーダ or 炭酸 appears. 7.Other names in 金額 column go to 同行者.
+　　Output: [{"日付":"2026-04-27","曜日":"日","顧客名":"岡田弘","人数":4,"合計":13000,"ボトル":"S","炭酸":"あり","その他":"","同行者":"中川","精度":4,"理由":""}]`;
 
 出力（JSONのみ）：[{"日付":"YYYY-MM-DD","曜日":"月","顧客名":"えっとん","人数":2,"合計":15000,"ボトル":"黒霧島","炭酸":"あり","その他":"","同行者":"","精度":4,"理由":""}]`;
 
