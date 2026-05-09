@@ -2275,19 +2275,8 @@ init();
 /* ============================================================
    伝票入力機能 JavaScript
    ============================================================ */
-  window.setGeminiKey = function() {
-  const current = localStorage.getItem('gemini_api_key') || '';
-  const key = prompt('Gemini APIキーを入力してください:', current);
-  if (key !== null && key.trim()) {
-    localStorage.setItem('gemini_api_key', key.trim());
-    const st = document.getElementById('gemini-key-status');
-    if (st) st.textContent = '✅ 設定済み';
-    alert('APIキーを保存しました。');
-  }
-};
 (function() {
-  let receiptFiles = [];      // 選択された画像ファイル
-  let receiptResults = [];    // AI解析結果
+  let receiptFiles = [];
 
   // ---- ファイル選択 ----
   window.onReceiptFilesSelected = function(event) {
@@ -2297,193 +2286,70 @@ init();
     receiptFiles = [...receiptFiles, ...files];
     renderReceiptPreviews();
     document.getElementById('receipt-action-row').style.display = '';
-    document.getElementById('receipt-analyze-btn').style.display = '';
+    document.getElementById('receipt-url-btn').style.display = '';
   };
 
+  // ---- プレビュー表示 ----
   function renderReceiptPreviews() {
     const grid = document.getElementById('receipt-preview-grid');
-    grid.innerHTML = receiptFiles.map((f, i) => {
+    if (!grid) return;
+    grid.innerHTML = '';
+    receiptFiles.forEach((f, i) => {
       const url = URL.createObjectURL(f);
-      return `
-        <div class="receipt-preview-item">
-          <img class="receipt-preview-img" src="${url}" alt="${f.name}">
-          <button class="receipt-preview-remove" onclick="removeReceiptFile(${i})">×</button>
-          <div class="receipt-preview-label">${f.name}</div>
-        </div>`;
-    }).join('');
-  }
-
-  window.removeReceiptFile = function(idx) {
-    receiptFiles.splice(idx, 1);
-    renderReceiptPreviews();
-    if (receiptFiles.length === 0) {
-      document.getElementById('receipt-analyze-btn').style.display = 'none';
-    }
-  };
-
-  // ---- AI解析 ----
-  window.analyzeReceipts = async function() {
-    if (!receiptFiles.length) return;
-
-    const btn = document.getElementById('receipt-analyze-btn');
-    btn.disabled = true;
-    btn.textContent = '🤖 解析中...';
-
-    const statusArea = document.getElementById('receipt-status-area');
-    const resultsArea = document.getElementById('receipt-results-area');
-    statusArea.innerHTML = '';
-    resultsArea.innerHTML = '';
-    receiptResults = [];
-
-    for (let i = 0; i < receiptFiles.length; i++) {
-      const file = receiptFiles[i];
-      const statusId = 'status-' + i;
-      statusArea.innerHTML += `
-        <div class="receipt-status-card processing" id="${statusId}">
-          ⏳ ${file.name} を解析中...
-        </div>`;
-
-      try {
-        // 画像をbase64に変換
-        const base64 = await fileToBase64(file);
-        const mediaType = file.type || 'image/jpeg';
-
-        // Claude APIで解析
-        const result = await callClaudeForReceipt(base64, mediaType, file.name);
-
-        document.getElementById(statusId).className = 'receipt-status-card done';
-        document.getElementById(statusId).textContent = `✅ ${file.name} 解析完了 (${result.length}件)`;
-
-        receiptResults.push({ file: file.name, rows: result });
-      } catch(e) {
-        document.getElementById(statusId).className = 'receipt-status-card error';
-        document.getElementById(statusId).textContent = `❌ ${file.name} エラー: ${e.message}`;
-        receiptResults.push({ file: file.name, rows: [] });
-      }
-    }
-
-    btn.disabled = false;
-    btn.textContent = '🤖 AIでデータ化する';
-    renderReceiptResults();
-  };
-
-  // ---- base64変換 ----
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;display:inline-block;margin:4px;';
+      div.innerHTML = `<img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+        <button onclick="removeReceiptFile(${i})" style="position:absolute;top:-6px;right:-6px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;">×</button>`;
+      grid.appendChild(div);
     });
   }
 
-  // ---- Claude API呼び出し ----
-  async function callClaudeForReceipt(base64, mediaType, filename) {
-    // Gemini APIをブラウザから直接呼び出す
-    const GEMINI_KEY = localStorage.getItem('gemini_api_key') || '';
-if (!GEMINI_KEY) { alert('Gemini APIキーが設定されていません。ダッシュボードの設定から入力してください。'); return; }
-    const today = new Date();
-    const prompt = `You are reading a handwritten Japanese bar receipt (お会計票). Extract data and return ONLY a JSON array, no markdown, no explanation. Start with [ and end with ].
-　　Rules: 1.Date is top of receipt as month/day, year=${today.getFullYear()}, output as YYYY-MM-DD. 2.Customer name is handwritten top-right corner, remove honorifics. 3.People count is the number in 数量 column on same row as bottle. 4.Total is the large number in 税込合計金額 box. 5.Bottle is first item in 品名 column. 6.Set 炭酸 to "あり" if ソーダ or 炭酸 appears. 7.Other names in 金額 column go to 同行者.
+  window.removeReceiptFile = function(i) {
+    receiptFiles.splice(i, 1);
+    renderReceiptPreviews();
+    if (!receiptFiles.length) {
+      document.getElementById('receipt-action-row').style.display = 'none';
+    }
+  };
 
-Output: [{"日付":"2026-04-27","曜日":"日","顧客名":"岡田弘","人数":4,"合計":13000,"ボトル":"S","炭酸":"あり","その他":"","同行者":"中川","精度":4,"理由":""}]`;
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [
-            { inline_data: { mime_type: mediaType, data: base64 } },
-            { text: prompt }
-          ]}],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 8000 }
-        })
+  // ---- Supabase StorageにアップロードしてURL発行 ----
+  window.uploadReceiptsAndGetURLs = async function() {
+    if (!receiptFiles.length) return;
+    const statusEl = document.getElementById('receipt-status-area');
+    statusEl.innerHTML = '<div class="card">📡 アップロード中...</div>';
+    try {
+      const urls = [];
+      const now = Date.now();
+      for (let i = 0; i < receiptFiles.length; i++) {
+        const file = receiptFiles[i];
+        const ext = file.name.split('.').pop() || 'jpg';
+        const path = `receipts/${now}_${i}.${ext}`;
+        const { error } = await sbClient.storage.from('receipts').upload(path, file, { upsert: true });
+        if (error) throw error;
+        const { data } = sbClient.storage.from('receipts').getPublicUrl(path);
+        urls.push(data.publicUrl);
       }
-    );
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error('Gemini API error: ' + JSON.stringify(err));
+      // URL一覧を表示
+      let html = '<div class="card"><div class="section-title">📤 発行されたURL（Claudeに貼り付けてください）</div>';
+      urls.forEach((url, i) => {
+        html += `<div style="margin-bottom:12px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">伝票 ${i+1}</div>
+          <input value="${url}" readonly style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:11px;" onclick="this.select()">
+        </div>`;
+      });
+      html += '<div style="font-size:11px;color:var(--muted);margin-top:8px;">※ URLの有効期限は1週間です</div></div>';
+      statusEl.innerHTML = html;
+    } catch(e) {
+      statusEl.innerHTML = `<div class="card" style="color:#e74c3c;">❌ エラー: ${e.message}</div>`;
     }
-
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-　　console.log('AI返答全文:', text);
-    // JSONを抽出（マークダウン除去）
-    let clean = text;
-    // コードブロック全体を除去
-　　clean = clean.replace(/```json/gi, '').replace(/```/g, '').trim();
-        const start = clean.indexOf('[');
-        if (start < 0) throw new Error('JSONが見つかりません: ' + text.slice(0, 300));
-        let jsonStr = clean.slice(start);
-        // 末尾が切れている場合を補完
-        if (!jsonStr.trimEnd().endsWith(']')) {
-          jsonStr = jsonStr.replace(/,?\s*\{[^}]*$/, '') + ']';
-        }
-        return JSON.parse(jsonStr);
-  }
-
-  // ---- 結果表示・編集 ----
-  function renderReceiptResults() {
-    const area = document.getElementById('receipt-results-area');
-    if (!receiptResults.length) return;
-
-    const allRows = receiptResults.flatMap(r => r.rows);
-    if (!allRows.length) {
-      area.innerHTML = '<div class="card"><div style="color:var(--muted);text-align:center;padding:20px;">データが読み取れませんでした</div></div>';
-      return;
-    }
-
-    area.innerHTML = `
-      <div class="card">
-        <div class="section-title">✏️ 内容を確認・修正してください</div>
-        <div class="table-scroll">
-          <table class="receipt-result-table" id="receipt-edit-table">
-            <thead>
-              <tr>
-                <th>日付</th><th>顧客名</th><th>人数</th><th>合計</th>
-                <th>ボトル</th><th>炭酸</th><th>その他</th><th>同行者</th><th>精度</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${allRows.map((r, i) => `
-                <tr>
-                  <td><input value="${r.日付||''}" onchange="updateReceiptRow(${i},'日付',this.value)"></td>
-                  <td><input value="${r.顧客名||''}" onchange="updateReceiptRow(${i},'顧客名',this.value)"></td>
-                  <td><input type="number" value="${r.人数||''}" style="width:60px" onchange="updateReceiptRow(${i},'人数',this.value)"></td>
-                  <td><input type="number" value="${r.合計||''}" style="width:90px" onchange="updateReceiptRow(${i},'合計',this.value)"></td>
-                  <td><input value="${r.ボトル||''}" onchange="updateReceiptRow(${i},'ボトル',this.value)"></td>
-                  <td><input value="${r.炭酸||''}" style="width:60px" onchange="updateReceiptRow(${i},'炭酸',this.value)"></td>
-                  <td><input value="${r.その他||''}" onchange="updateReceiptRow(${i},'その他',this.value)"></td>
-                  <td><input value="${r.同行者||''}" onchange="updateReceiptRow(${i},'同行者',this.value)"></td>
-                  <td style="text-align:center;color:var(--muted)">${r.精度||'-'}</td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-        <button class="receipt-register-btn" onclick="registerReceiptData()">
-          ✅ このデータを登録する
-        </button>
-        <div id="receipt-register-status" style="margin-top:10px;font-size:13px;color:var(--accent);"></div>
-      </div>`;
-
-    // allRowsをグローバルに保持
-    window._pendingReceiptRows = allRows;
-  }
-
-  // 編集反映
-  window.updateReceiptRow = function(i, key, val) {
-    if (window._pendingReceiptRows) window._pendingReceiptRows[i][key] = val;
   };
 
   // ---- Supabaseに登録 ----
   window.registerReceiptData = async function() {
     const rows = window._pendingReceiptRows;
     if (!rows || !rows.length) return;
-
     const statusEl = document.getElementById('receipt-register-status');
     statusEl.textContent = '📡 登録中...';
-
     try {
       const toInsert = rows.map(r => ({
         日付: r.日付 || '',
@@ -2497,51 +2363,33 @@ Output: [{"日付":"2026-04-27","曜日":"日","顧客名":"岡田弘","人数":
         精度: r.精度 || '',
         備考: r.備考 || ''
       }));
-
-      // 同じ日付＋顧客名のレコードを先に削除（上書き）
       for (const r of toInsert) {
         await sbClient.from('hareru_records').delete().eq('日付', r.日付).eq('顧客名', r.顧客名);
       }
       const { error } = await sbClient.from('hareru_records').insert(toInsert);
       if (error) throw error;
-
       statusEl.textContent = `✅ ${toInsert.length}件を登録しました！`;
       statusEl.style.color = '#27ae60';
-
-      // データ再読込
       await loadFromSupabase();
       updateDashboard();
       updateLoadedSummary();
-
-      // 3秒後にリセット
       setTimeout(() => {
         receiptFiles = [];
-        receiptResults = [];
         window._pendingReceiptRows = [];
         const pg = document.getElementById('receipt-preview-grid');
-　　　const sa = document.getElementById('receipt-status-area');
-　　　const ra = document.getElementById('receipt-results-area');
-　　　if (pg) pg.innerHTML = '';
-　　　if (sa) sa.innerHTML = '';
-　　　if (ra) ra.innerHTML = '';
-　　　const ab = document.getElementById('receipt-analyze-btn');
-　　　const fi = document.getElementById('receipt-file-input');
-　　　if (ab) ab.style.display = 'none';
-　　　if (fi) fi.value = '';
+        const sa = document.getElementById('receipt-status-area');
+        if (pg) pg.innerHTML = '';
+        if (sa) sa.innerHTML = '';
+        const fi = document.getElementById('receipt-file-input');
+        if (fi) fi.value = '';
         statusEl.textContent = '';
       }, 3000);
-
     } catch(e) {
       statusEl.textContent = '❌ 登録エラー: ' + e.message;
       statusEl.style.color = '#e74c3c';
     }
   };
-
 })();
 /* ============================================================
    /伝票入力機能 JavaScript
    ============================================================ */
-
-</script>
-</body>
-</html>
