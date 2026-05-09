@@ -1240,7 +1240,7 @@ function updateLoadedSummary() {
 
 // ===== CSVエクスポート =====
 function exportCSV() {
-  const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','精度','備考'];
+  const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考'];
   const rows = records.map(r => header.map(h => r[h] || '').join(','));
   const csv = '\uFEFF' + header.join(',') + '\n' + rows.join('\n');
   const blob = new Blob([csv], {type: 'text/csv'});
@@ -1834,6 +1834,7 @@ async function saveToSupabase(newRecords) {
       ボトル: r['ボトル'] || '',
       炭酸: r['炭酸'] || '',
       その他: r['その他'] || '',
+      同行者: r['同行者'] || '',
       精度: r['精度'] || '',
       備考: r['備考'] || ''
     }));
