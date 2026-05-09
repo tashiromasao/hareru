@@ -798,7 +798,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 
         <div class="table-scroll"><table class="data-table">
           <thead>
-            <tr><th>日付</th><th>顧客名</th><th>人数</th><th>合計</th><th>ボトル</th><th>炭酸</th><th>その他</th><th>同行者</th><th>備考</th></tr>
+            <tr><th>日付</th><th>顧客名</th><th>人数</th><th>合計</th><th>ボトル</th><th>炭酸</th><th>その他</th><th>備考</th></tr>
           </thead>
           <tbody id="search-results"></tbody>
         </table></div>
@@ -981,7 +981,6 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
     <div class="modal-row"><div class="modal-label">ボトル</div><input class="modal-input" id="edit-bottle"></div>
     <div class="modal-row"><div class="modal-label">炭酸</div><input class="modal-input" id="edit-soda"></div>
     <div class="modal-row"><div class="modal-label">その他</div><input class="modal-input" id="edit-other"></div>
-    <div class="modal-row"><div class="modal-label">同行者</div><input class="modal-input" id="edit-companion"></div>
     <div class="modal-row"><div class="modal-label">備考</div><input class="modal-input" id="edit-note"></div>
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal()">キャンセル</button>
@@ -1027,7 +1026,7 @@ function parseJpDate(str) {
   return null;
 }
 
-function formatYen(n) { return '\' + Math.round(n).toLocaleString(); }
+function formatYen(n) { return '¥' + Math.round(n).toLocaleString(); }
 function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function getDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
@@ -1685,12 +1684,12 @@ function doSearch() {
     tr.innerHTML = `
       <td>${r['日付']||''}</td><td>${r['顧客名']||''}</td><td>${r['人数']||''}</td>
       <td>${r['合計']?formatYen(r['合計']):''}</td><td>${r['ボトル']||''}</td>
-      <td>${r['炭酸']||''}</td><td>${r['その他']||''}</td><td>${r['同行者']||''}</td><td>${r['備考']||''}</td>
+      <td>${r['炭酸']||''}</td><td>${r['その他']||''}</td><td>${r['備考']||''}</td>
     `;
     tbody.appendChild(tr);
   });
   if (results.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px;">該当データなし</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">該当データなし</td></tr>';
   }
 }
 
@@ -1756,7 +1755,6 @@ function openEdit(idx) {
   document.getElementById('edit-bottle').value = r['ボトル']||'';
   document.getElementById('edit-soda').value = r['炭酸']||'';
   document.getElementById('edit-other').value = r['その他']||'';
-  document.getElementById('edit-companion').value = r['同行者']||'';
   document.getElementById('edit-note').value = r['備考']||'';
   document.getElementById('edit-modal').classList.add('open');
 }
@@ -1773,7 +1771,6 @@ function saveEdit() {
   r['ボトル'] = document.getElementById('edit-bottle').value;
   r['炭酸'] = document.getElementById('edit-soda').value;
   r['その他'] = document.getElementById('edit-other').value;
-  r['同行者'] = document.getElementById('edit-companion').value;
   r['備考'] = document.getElementById('edit-note').value;
   r._date = parseJpDate(r['日付']);
   r._total = parseInt(r['合計'])||0;
