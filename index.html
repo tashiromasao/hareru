@@ -913,12 +913,11 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 
 
     <!-- ===== 伝票入力ページ ===== -->
-    <div class="page" id="page-receipt">
-
+   <div class="page" id="page-receipt">
       <!-- アップロードエリア -->
       <div class="card" style="margin-bottom:16px;">
         <div class="section-title">📷 伝票画像をアップロード</div>
-       <label class="receipt-upload-area" for="receipt-file-input" style="display:block;cursor:pointer;">
+        <label class="receipt-upload-area" for="receipt-file-input" style="display:block;cursor:pointer;">
           <input type="file" id="receipt-file-input" accept="image/*" multiple
             onchange="onReceiptFilesSelected(event)">
           <div style="font-size:40px;margin-bottom:10px;">📷</div>
@@ -928,18 +927,13 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
           <div style="font-size:12px;color:var(--muted);">複数枚同時選択OK</div>
         </label>
         <div id="receipt-preview-grid" class="receipt-preview-grid"></div>
-        <div style="margin-top:12px;">
-          <button onclick="setGeminiKey()" style="background:#f0f0f0;border:1px solid #ccc;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;">⚙️ Gemini APIキー設定</button>
-          <span id="gemini-key-status" style="font-size:11px;color:var(--muted);margin-left:8px;"></span>
-        </div>
-        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;" id="receipt-action-row" style="display:none">
-          <button class="btn-primary" id="receipt-analyze-btn"
-            onclick="analyzeReceipts()" style="display:none;">
-            🤖 AIでデータ化する
+        <div style="margin-top:16px;" id="receipt-action-row" style="display:none">
+          <button class="btn-primary" id="receipt-url-btn"
+            onclick="uploadReceiptsAndGetURLs()" style="display:none;background:#6c757d;">
+            📤 URLを発行する
           </button>
         </div>
       </div>
-
       <!-- 処理状況 -->
       <div id="receipt-status-area"></div>
 
