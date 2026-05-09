@@ -1027,7 +1027,7 @@ function parseJpDate(str) {
   return null;
 }
 
-function formatYen(n) { return '\' + Math.round(n).toLocaleString(); }
+function formatYen(n) { return '¥' + Math.round(n).toLocaleString(); }
 function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function getDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
@@ -1452,7 +1452,7 @@ function renderCalendar() {
     if (daySales[d]) {
       const sEl = document.createElement('div');
       sEl.className = 'cal-sales';
-      sEl.textContent = '\' + daySales[d].toLocaleString();
+      sEl.textContent = '¥' + daySales[d].toLocaleString();
       el.appendChild(sEl);
     }
 
@@ -2131,7 +2131,7 @@ init();
     document.getElementById('an-cust-name').textContent  = name;
     document.getElementById('an-cust-dates').textContent = `初回 ${fmtD(first)}　直近 ${fmtD(last)}`;
     document.getElementById('an-cust-visits').textContent = recs.length + '回';
-    document.getElementById('an-cust-amount').textContent = '\' + total.toLocaleString();
+    document.getElementById('an-cust-amount').textContent = '¥' + total.toLocaleString();
     document.getElementById('an-cust-bottle').textContent = bottleTxt;
 
     // 来店履歴（新しい順）
