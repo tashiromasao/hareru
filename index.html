@@ -1397,7 +1397,7 @@ function updateChart() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
       scales: {
-        y1: { position: 'left', ticks: { callback: v => '\'+v.toLocaleString(), font: { size: 10 } } },
+        y1: { position: 'left', ticks: { callback: v => '¥'+v.toLocaleString(), font: { size: 10 } } },
         y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } }
       }
     }
@@ -1451,7 +1451,7 @@ function renderCalendar() {
     if (daySales[d]) {
       const sEl = document.createElement('div');
       sEl.className = 'cal-sales';
-      sEl.textContent = '\' + daySales[d].toLocaleString();
+      sEl.textContent = '¥' + daySales[d].toLocaleString();
       el.appendChild(sEl);
     }
 
@@ -2040,8 +2040,8 @@ init();
       <tr>
         <td><strong>${s.lbl}</strong></td>
         <td>${s.op}日</td>
-        <td>${s.op?'\'+s.avgS.toLocaleString():'-'}</td>
-        <td>${s.op?'\'+s.maxS.toLocaleString():'-'}</td>
+        <td>${s.op?'¥'+s.avgS.toLocaleString():'-'}</td>
+        <td>${s.op?'¥'+s.maxS.toLocaleString():'-'}</td>
         <td>${s.op?s.avgV+'人':'-'}</td>
         <td>${s.op?s.maxV+'人':'-'}</td>
         <td>${s.op?s.avgG+'組':'-'}</td>
@@ -2128,7 +2128,7 @@ init();
     document.getElementById('an-cust-name').textContent  = name;
     document.getElementById('an-cust-dates').textContent = `初回 ${fmtD(first)}　直近 ${fmtD(last)}`;
     document.getElementById('an-cust-visits').textContent = recs.length + '回';
-    document.getElementById('an-cust-amount').textContent = '\' + total.toLocaleString();
+    document.getElementById('an-cust-amount').textContent = '¥' + total.toLocaleString();
     document.getElementById('an-cust-bottle').textContent = bottleTxt;
 
     // 来店履歴（新しい順）
