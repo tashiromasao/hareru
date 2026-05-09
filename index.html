@@ -1,7 +1,4 @@
 
-
-
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -509,22 +506,22 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 <nav class="sidebar">
   <div class="sidebar-logo">ハレル<span>.</span></div>
   <div class="nav-item active" onclick="showPage('top')">
-    <span class="nav-icon">🏠</span> ダッシュボード
+    <span class="nav-icon">??</span> ダッシュボード
   </div>
   <div class="nav-item" onclick="showPage('history')">
-    <span class="nav-icon">📊</span> 過去の実績
+    <span class="nav-icon">??</span> 過去の実績
   </div>
   <div class="nav-item" onclick="showPage('analytics')">
-    <span class="nav-icon">📈</span> 分析
+    <span class="nav-icon">??</span> 分析
   </div>
   <div class="nav-item" onclick="showPage('search')">
-    <span class="nav-icon">🔍</span> データ検索
+    <span class="nav-icon">??</span> データ検索
   </div>
   <div class="nav-item" onclick="showPage('receipt')">
-    <span class="nav-icon">📝</span> 伝票入力
+    <span class="nav-icon">??</span> 伝票入力
   </div>
   <div class="nav-item" onclick="showPage('upload')">
-    <span class="nav-icon">📂</span> データ読み込み
+    <span class="nav-icon">??</span> データ読み込み
   </div>
 </nav>
 
@@ -532,27 +529,27 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
     <div class="bottom-nav-item active" id="bn-top" onclick="showPage('top')">
-      <span class="bn-icon">🏠</span>
+      <span class="bn-icon">??</span>
       <span>ホーム</span>
     </div>
     <div class="bottom-nav-item" id="bn-history" onclick="showPage('history')">
-      <span class="bn-icon">📊</span>
+      <span class="bn-icon">??</span>
       <span>実績</span>
     </div>
     <div class="bottom-nav-item" id="bn-analytics" onclick="showPage('analytics')">
-      <span class="bn-icon">📈</span>
+      <span class="bn-icon">??</span>
       <span>分析</span>
     </div>
     <div class="bottom-nav-item" id="bn-search" onclick="showPage('search')">
-      <span class="bn-icon">🔍</span>
+      <span class="bn-icon">??</span>
       <span>検索</span>
     </div>
     <div class="bottom-nav-item" id="bn-receipt" onclick="showPage('receipt')">
-      <span class="bn-icon">📝</span>
+      <span class="bn-icon">??</span>
       <span>伝票入力</span>
     </div>
     <div class="bottom-nav-item" id="bn-upload" onclick="showPage('upload')">
-      <span class="bn-icon">📂</span>
+      <span class="bn-icon">??</span>
       <span>読み込み</span>
     </div>
   </div>
@@ -573,7 +570,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
     <!-- ===== トップページ ===== -->
     <div class="page active" id="page-top">
 
-      <!-- ?@ 当月・前月の売上・顧客数（最上位） -->
+      <!-- ① 当月・前月の売上・顧客数（最上位） -->
       <div class="two-col" style="margin-bottom:16px;">
         <div class="card">
           <div class="section-title">売上</div>
@@ -614,7 +611,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
         </div>
       </div>
 
-      <!-- ?A カレンダー -->
+      <!-- ② カレンダー -->
       <div class="card" style="margin-bottom:16px;">
         <div class="calendar-header">
           <button class="calendar-nav" onclick="changeMonth(-1)">?</button>
@@ -633,7 +630,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
         <div class="calendar-grid" id="calendar-grid"></div>
       </div>
 
-      <!-- ?B グラフ -->
+      <!-- ③ グラフ -->
       <div class="card" style="margin-bottom:16px;">
         <div class="section-title">月別推移（過去12ヶ月）</div>
         <div class="chart-container">
@@ -641,7 +638,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
         </div>
       </div>
 
-      <!-- ?C 累計サマリー（最下部） -->
+      <!-- ④ 累計サマリー（最下部） -->
       <div class="summary-grid">
         <div class="stat-card">
           <div class="stat-label">累計売上</div>
@@ -732,7 +729,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
       <div class="card" style="max-width:600px;margin-bottom:16px;">
         <div class="section-title">CSVデータ読み込み</div>
         <div class="upload-area" onclick="document.getElementById('csv-input').click()">
-          <div class="upload-icon">📂</div>
+          <div class="upload-icon">??</div>
           <div class="upload-text">CSVファイルをタップして選択<br><small>（伝票データNo1.csv など）</small></div>
           <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="loadCSV(event)">
         </div>
@@ -743,8 +740,8 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
           <div class="section-title">保存済みデータ</div>
           <div id="loaded-summary" style="font-size:13px;color:var(--muted);margin-bottom:12px;">データが読み込まれていません</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn-secondary" onclick="exportCSV()" id="export-btn" style="display:none;">💾 CSVエクスポート</button>
-            <button class="btn-secondary" onclick="clearAllData()" id="clear-btn" style="display:none;color:#e74c3c;border-color:#e74c3c;">🗑️ データを削除</button>
+            <button class="btn-secondary" onclick="exportCSV()" id="export-btn" style="display:none;">?? CSVエクスポート</button>
+            <button class="btn-secondary" onclick="clearAllData()" id="clear-btn" style="display:none;color:#e74c3c;border-color:#e74c3c;">?? データを削除</button>
           </div>
         </div>
       </div>
@@ -831,9 +828,9 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 
       <!-- タブナビ（新しい分析はここに追加） -->
       <div class="an-tab-nav">
-        <button class="an-tab-btn active" onclick="anSwitchTab('weekday',this)">📅 曜日別実績</button>
-        <button class="an-tab-btn"        onclick="anSwitchTab('ranking',this)">🏆 常連ランキング</button>
-        <button class="an-tab-btn"        onclick="anSwitchTab('bottle', this)">🍶 ボトルランキング</button>
+        <button class="an-tab-btn active" onclick="anSwitchTab('weekday',this)">?? 曜日別実績</button>
+        <button class="an-tab-btn"        onclick="anSwitchTab('ranking',this)">?? 常連ランキング</button>
+        <button class="an-tab-btn"        onclick="anSwitchTab('bottle', this)">?? ボトルランキング</button>
         <!-- ▼ 新しいタブはここに追加 ▼ -->
       </div>
 
@@ -920,11 +917,11 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
    <div class="page" id="page-receipt">
       <!-- アップロードエリア -->
       <div class="card" style="margin-bottom:16px;">
-        <div class="section-title">📸 伝票画像をアップロード</div>
+        <div class="section-title">?? 伝票画像をアップロード</div>
         <label class="receipt-upload-area" for="receipt-file-input" style="display:block;cursor:pointer;">
           <input type="file" id="receipt-file-input" accept="image/*" multiple
             onchange="onReceiptFilesSelected(event)">
-          <div style="font-size:40px;margin-bottom:10px;">📷</div>
+          <div style="font-size:40px;margin-bottom:10px;">??</div>
           <div style="font-size:15px;font-weight:600;color:var(--primary);margin-bottom:6px;">
             タップして伝票を撮影・選択
           </div>
@@ -934,7 +931,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
         <div style="margin-top:16px;" id="receipt-action-row" style="display:none">
           <button class="btn-primary" id="receipt-url-btn"
             onclick="uploadReceiptsAndGetURLs()" style="display:none;background:#6c757d;">
-            🔗 URLを発行する
+            ?? URLを発行する
           </button>
         </div>
       </div>
@@ -984,9 +981,8 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
     <div class="modal-row"><div class="modal-label">ボトル</div><input class="modal-input" id="edit-bottle"></div>
     <div class="modal-row"><div class="modal-label">炭酸</div><input class="modal-input" id="edit-soda"></div>
     <div class="modal-row"><div class="modal-label">その他</div><input class="modal-input" id="edit-other"></div>
-    <div class="modal-row"><div class="modal-label">同行者</div><input class="modal-input" id="edit-companion"></div>
-    <div class="modal-row"><div class="modal-label">同行者</div><input class="modal-input" id="edit-companion"></div>
-    <div class="modal-row"><div class="modal-label">備考</div><input class="modal-input" id="edit-note"></div>
+"    <div class=""modal-row""><div class=""modal-label"">同行者</div><input class=""modal-input"" id=""edit-companion""></div>
+    <div class=""modal-row""><div class=""modal-label"">備考</div><input class=""modal-input"" id=""edit-note""></div>"
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeModal()">キャンセル</button>
       <button class="btn-primary" onclick="saveEdit()">保存</button>
@@ -1031,7 +1027,7 @@ function parseJpDate(str) {
   return null;
 }
 
-function formatYen(n) { return '¥' + Math.round(n).toLocaleString(); }
+function formatYen(n) { return '\' + Math.round(n).toLocaleString(); }
 function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function getDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
@@ -1080,7 +1076,7 @@ async function processCSVText(text, file, event) {
 
     // Supabaseに保存
     if (added.length > 0) {
-      document.getElementById('upload-status').textContent = '? Supabaseに保存中...';
+      document.getElementById('upload-status').textContent = '?? Supabaseに保存中...';
       await saveToSupabase(added);
       // Supabaseから最新データを再取得
       await loadFromSupabase();
@@ -1265,7 +1261,7 @@ function clearAllData() {
   localStorage.removeItem(LS_HISTORY);
   updateLoadedSummary();
   renderUploadHistory();
-  document.getElementById('upload-status').textContent = '? データを削除しました';
+  document.getElementById('upload-status').textContent = '?? データを削除しました';
   updateDashboard();
 }
 
@@ -1402,7 +1398,7 @@ function updateChart() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
       scales: {
-        y1: { position: 'left', ticks: { callback: v => '¥'+v.toLocaleString(), font: { size: 10 } } },
+        y1: { position: 'left', ticks: { callback: v => '\'+v.toLocaleString(), font: { size: 10 } } },
         y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } }
       }
     }
@@ -1456,7 +1452,7 @@ function renderCalendar() {
     if (daySales[d]) {
       const sEl = document.createElement('div');
       sEl.className = 'cal-sales';
-      sEl.textContent = '¥' + daySales[d].toLocaleString();
+      sEl.textContent = '\' + daySales[d].toLocaleString();
       el.appendChild(sEl);
     }
 
@@ -1510,9 +1506,9 @@ function showDaily(year, month, day) {
         </div>
         <div class="detail-card-row">
           <span class="detail-tag">人数 ${(()=>{ const base=parseInt(r['人数']||0); const comp=r['同行者']?(r['同行者'].split(/[,、，]/).filter(s=>s.trim()).length):0; return base+comp; })()}人${r['同行者']?'（同行者'+r['同行者'].split(/[,、，]/).filter(s=>s.trim()).length+'人含む）':''}</span>
-          <span class="detail-tag highlight">${parseInt(r['合計']||0).toLocaleString()}</span>
-          ${r['ボトル'] ? `<span class="detail-tag">🍶 ${r['ボトル']}</span>` : ''}
-          ${r['炭酸'] ? `<span class="detail-tag">🫧 炭酸あり</span>` : ''}
+          <span class="detail-tag highlight">\${parseInt(r['合計']||0).toLocaleString()}</span>
+          ${r['ボトル'] ? `<span class="detail-tag">?? ${r['ボトル']}</span>` : ''}
+          ${r['炭酸'] ? `<span class="detail-tag">?? 炭酸あり</span>` : ''}
         </div>
         ${r['その他'] ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">その他: ${r['その他']}</div>` : ''}
         ${r['同行者'] ? `<div style="font-size:12px;color:var(--muted);margin-top:2px;">同行者: ${r['同行者']}</div>` : ''}
@@ -1761,7 +1757,6 @@ function openEdit(idx) {
   document.getElementById('edit-soda').value = r['炭酸']||'';
   document.getElementById('edit-other').value = r['その他']||'';
   document.getElementById('edit-companion').value = r['同行者']||'';
-  document.getElementById('edit-companion').value = r['同行者']||'';
   document.getElementById('edit-note').value = r['備考']||'';
   document.getElementById('edit-modal').classList.add('open');
 }
@@ -1778,7 +1773,6 @@ function saveEdit() {
   r['ボトル'] = document.getElementById('edit-bottle').value;
   r['炭酸'] = document.getElementById('edit-soda').value;
   r['その他'] = document.getElementById('edit-other').value;
-  r['同行者'] = document.getElementById('edit-companion').value;
   r['同行者'] = document.getElementById('edit-companion').value;
   r['備考'] = document.getElementById('edit-note').value;
   r._date = parseJpDate(r['日付']);
@@ -1888,7 +1882,7 @@ async function init() {
   currentCalendarMonth = now.getMonth();
 
   // Supabaseからデータ読み込み
-  document.getElementById('upload-status').textContent = '? データを読み込み中...';
+  document.getElementById('upload-status').textContent = '?? データを読み込み中...';
   await loadFromSupabase();
 
   if (records.length > 0) {
@@ -1918,7 +1912,7 @@ init();
   const WD     = ['月','火','水','木','金','土','日'];
   const SCLR   = ['#5c6bc0','#5c6bc0','#5c6bc0','#5c6bc0','#e8734a','#e8734a','#9c27b0'];
   const VCLR   = ['#2e9e8f','#2e9e8f','#2e9e8f','#2e9e8f','#ffa726','#ffa726','#ef5350'];
-  const MEDAL  = ['🥇','🥈','🥉'];
+  const MEDAL  = ['??','??','??'];
   const bc = i => i===0?'r1':i===1?'r2':i===2?'r3':'rn';
   const bl = i => i<3 ? MEDAL[i] : i+1;
   const ym = d => (d||'').slice(0,7);
@@ -2042,15 +2036,15 @@ init();
       };
     });
 
-    anDrawBar('an-sales-chart', st, 'avgS', SCLR, v=>v>=10000?`${Math.round(v/1000)}k`:`${v.toLocaleString()}`);
+    anDrawBar('an-sales-chart', st, 'avgS', SCLR, v=>v>=10000?`\${Math.round(v/1000)}k`:`\${v.toLocaleString()}`);
     anDrawBar('an-vis-chart',   st, 'avgV', VCLR, v=>`${v}人`);
 
     document.getElementById('an-wd-tbody').innerHTML = st.map(s=>`
       <tr>
         <td><strong>${s.lbl}</strong></td>
         <td>${s.op}日</td>
-        <td>${s.op?'¥'+s.avgS.toLocaleString():'-'}</td>
-        <td>${s.op?'¥'+s.maxS.toLocaleString():'-'}</td>
+        <td>${s.op?'\'+s.avgS.toLocaleString():'-'}</td>
+        <td>${s.op?'\'+s.maxS.toLocaleString():'-'}</td>
         <td>${s.op?s.avgV+'人':'-'}</td>
         <td>${s.op?s.maxV+'人':'-'}</td>
         <td>${s.op?s.avgG+'組':'-'}</td>
@@ -2097,10 +2091,10 @@ init();
     }
     el.innerHTML = sorted.map((c,i)=>{
       const val  = isV?c.visits:c.amount;
-      const vLbl = isV?`${val}回`:`${val.toLocaleString()}`;
-      const sLbl = isV?`累計 ${c.amount.toLocaleString()}`:`${c.visits}回来店`;
+      const vLbl = isV?`${val}回`:`\${val.toLocaleString()}`;
+      const sLbl = isV?`累計 \${c.amount.toLocaleString()}`:`${c.visits}回来店`;
       return `
-        <div class="an-rank-item" style="cursor:pointer;" onclick="anOpenCustomer('${c.name.replace(/'/g,"\")}')">
+        <div class="an-rank-item" style="cursor:pointer;" onclick="anOpenCustomer('${c.name.replace(/'/g,"\'")}')">
           <div class="an-rbadge ${bc(i)}">${bl(i)}</div>
           <div class="an-rinfo">
             <div class="an-rname" style="color:var(--accent);text-decoration:underline dotted;">${c.name}</div>
@@ -2137,20 +2131,20 @@ init();
     document.getElementById('an-cust-name').textContent  = name;
     document.getElementById('an-cust-dates').textContent = `初回 ${fmtD(first)}　直近 ${fmtD(last)}`;
     document.getElementById('an-cust-visits').textContent = recs.length + '回';
-    document.getElementById('an-cust-amount').textContent = '¥' + total.toLocaleString();
+    document.getElementById('an-cust-amount').textContent = '\' + total.toLocaleString();
     document.getElementById('an-cust-bottle').textContent = bottleTxt;
 
     // 来店履歴（新しい順）
     document.getElementById('an-cust-records').innerHTML = recs.map(r => {
       const d = (r['日付']||'').slice(5).replace('-','/');
-      const bottle = r['ボトル'] ? ` 🍶${r['ボトル']}` : '';
-      const soda   = r['炭酸']   ? ' 🫧炭酸' : '';
+      const bottle = r['ボトル'] ? ` ??${r['ボトル']}` : '';
+      const soda   = r['炭酸']   ? ' ??炭酸' : '';
       const comp   = r['同行者'] ? ` 同行者:${r['同行者']}` : '';
       return `
         <div class="an-crec">
           <div class="an-crec-date">${d}</div>
           <div class="an-crec-info">${r['人数']}人${bottle}${soda}${comp}</div>
-          <div class="an-crec-amount">${parseInt(r['合計']||r._total||0).toLocaleString()}</div>
+          <div class="an-crec-amount">\${parseInt(r['合計']||r._total||0).toLocaleString()}</div>
         </div>`;
     }).join('');
 
@@ -2326,7 +2320,7 @@ init();
   window.uploadReceiptsAndGetURLs = async function() {
     if (!receiptFiles.length) return;
     const statusEl = document.getElementById('receipt-status-area');
-    statusEl.innerHTML = '<div class="card">? アップロード中...</div>';
+    statusEl.innerHTML = '<div class="card">?? アップロード中...</div>';
     try {
       const urls = [];
       const now = Date.now();
@@ -2340,7 +2334,7 @@ init();
         urls.push(data.publicUrl);
       }
       // URL一覧を表示
-      let html = '<div class="card"><div class="section-title">🔗 発行されたURL（Claudeに貼り付けてください）</div>';
+      let html = '<div class="card"><div class="section-title">?? 発行されたURL（Claudeに貼り付けてください）</div>';
       urls.forEach((url, i) => {
         html += `<div style="margin-bottom:12px;">
           <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">伝票 ${i+1}</div>
@@ -2359,7 +2353,7 @@ init();
     const rows = window._pendingReceiptRows;
     if (!rows || !rows.length) return;
     const statusEl = document.getElementById('receipt-register-status');
-    statusEl.textContent = '? 登録中...';
+    statusEl.textContent = '?? 登録中...';
     try {
       const toInsert = rows.map(r => ({
         日付: r.日付 || '',
@@ -2398,3 +2392,12 @@ init();
       statusEl.textContent = '? 登録エラー: ' + e.message;
       statusEl.style.color = '#e74c3c';
     }
+  };
+})();</script>
+</body>
+</html>
+
+
+
+
+
