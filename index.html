@@ -1839,9 +1839,9 @@ async function saveToSupabase(newRecords) {
       備考: r['備考'] || ''
     }));
     const { error } = await sbClient.from('hareru_records').insert(rows);
-    if (error) console.error('Supabase保存エラー:', error);
+    if (error) console.error('Supabase保存エラー:', error.message, '| code:', error.code, '| details:', error.details, '| hint:', error.hint);
   } catch(e) {
-    console.error('Supabase保存例外:', e);
+    console.error('Supabase保存例外:', e.message || e);
   }
 }
 
@@ -1851,7 +1851,10 @@ async function loadFromSupabase() {
       .from('hareru_records')
       .select('*')
       .order('id', { ascending: true });
-    if (error) { console.error('Supabase読み込みエラー:', error); return; }
+    if (error) {
+      console.error('Supabase読み込みエラー:', error.message, '| code:', error.code, '| details:', error.details, '| hint:', error.hint);
+      return;
+    }
     records = (data || []).map(r => ({
       '日付': r['日付'] || '',
       '顧客名': r['顧客名'] || '',
@@ -1870,7 +1873,7 @@ async function loadFromSupabase() {
     }));
     records.sort((a,b) => (a._date||0) - (b._date||0));
   } catch(e) {
-    console.error('Supabase読み込み例外:', e);
+    console.error('Supabase読み込み例外:', e.message || e);
   }
 }
 
