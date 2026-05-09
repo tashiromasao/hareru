@@ -1,12 +1,11 @@
-
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0056)file:///C:/Users/tashiromasao/Downloads/index%20(1).html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ハレル ダッシュボード</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="./index_files/chart.umd.min.js.ダウンロード"></script>
+<script src="./index_files/supabase.js.ダウンロード"></script>
 <style>
 :root {
   --primary: #1a3a5c;
@@ -505,22 +504,22 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 <!-- サイドバー -->
 <nav class="sidebar">
   <div class="sidebar-logo">ハレル<span>.</span></div>
-  <div class="nav-item active" onclick="showPage('top')">
+  <div class="nav-item active" onclick="showPage(&#39;top&#39;)">
     <span class="nav-icon">🏠</span> ダッシュボード
   </div>
-  <div class="nav-item" onclick="showPage('history')">
+  <div class="nav-item" onclick="showPage(&#39;history&#39;)">
     <span class="nav-icon">📊</span> 過去の実績
   </div>
-  <div class="nav-item" onclick="showPage('analytics')">
+  <div class="nav-item" onclick="showPage(&#39;analytics&#39;)">
     <span class="nav-icon">📈</span> 分析
   </div>
-  <div class="nav-item" onclick="showPage('search')">
+  <div class="nav-item" onclick="showPage(&#39;search&#39;)">
     <span class="nav-icon">🔍</span> データ検索
   </div>
-  <div class="nav-item" onclick="showPage('receipt')">
+  <div class="nav-item" onclick="showPage(&#39;receipt&#39;)">
     <span class="nav-icon">📝</span> 伝票入力
   </div>
-  <div class="nav-item" onclick="showPage('upload')">
+  <div class="nav-item" onclick="showPage(&#39;upload&#39;)">
     <span class="nav-icon">📂</span> データ読み込み
   </div>
 </nav>
@@ -528,27 +527,27 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 <!-- ボトムナビ（スマホ用） -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <div class="bottom-nav-item active" id="bn-top" onclick="showPage('top')">
+    <div class="bottom-nav-item active" id="bn-top" onclick="showPage(&#39;top&#39;)">
       <span class="bn-icon">🏠</span>
       <span>ホーム</span>
     </div>
-    <div class="bottom-nav-item" id="bn-history" onclick="showPage('history')">
+    <div class="bottom-nav-item" id="bn-history" onclick="showPage(&#39;history&#39;)">
       <span class="bn-icon">📊</span>
       <span>実績</span>
     </div>
-    <div class="bottom-nav-item" id="bn-analytics" onclick="showPage('analytics')">
+    <div class="bottom-nav-item" id="bn-analytics" onclick="showPage(&#39;analytics&#39;)">
       <span class="bn-icon">📈</span>
       <span>分析</span>
     </div>
-    <div class="bottom-nav-item" id="bn-search" onclick="showPage('search')">
+    <div class="bottom-nav-item" id="bn-search" onclick="showPage(&#39;search&#39;)">
       <span class="bn-icon">🔍</span>
       <span>検索</span>
     </div>
-    <div class="bottom-nav-item" id="bn-receipt" onclick="showPage('receipt')">
+    <div class="bottom-nav-item" id="bn-receipt" onclick="showPage(&#39;receipt&#39;)">
       <span class="bn-icon">📝</span>
       <span>伝票入力</span>
     </div>
-    <div class="bottom-nav-item" id="bn-upload" onclick="showPage('upload')">
+    <div class="bottom-nav-item" id="bn-upload" onclick="showPage(&#39;upload&#39;)">
       <span class="bn-icon">📂</span>
       <span>読み込み</span>
     </div>
@@ -560,8 +559,8 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
   <div class="topbar">
     <div class="topbar-title" id="page-title">ダッシュボード トップ</div>
     <div class="topbar-right">
-      <span id="current-date" style="font-size:13px;color:var(--muted)"></span>
-      <button class="file-upload-btn" onclick="showPage('upload')">+ データ読み込み</button>
+      <span id="current-date" style="font-size:13px;color:var(--muted)">2026年5月9日（土）</span>
+      <button class="file-upload-btn" onclick="showPage(&#39;upload&#39;)">+ データ読み込み</button>
     </div>
   </div>
 
@@ -577,15 +576,15 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
           <div class="detail-row">
             <div style="width:100%;">
               <div class="detail-label">当月</div>
-              <div class="detail-value" id="current-month-sales">\0</div>
-              <div class="detail-sub">平均 <span id="cm-avg-sales">\0</span> / 日　最大 <span id="cm-max-sales">\0</span></div>
+              <div class="detail-value" id="current-month-sales">¥205,400</div>
+              <div class="detail-sub">平均 <span id="cm-avg-sales">¥25,675</span> / 日　最大 <span id="cm-max-sales">¥88,800</span></div>
             </div>
           </div>
           <div class="detail-row">
             <div style="width:100%;">
               <div class="detail-label">前月</div>
-              <div class="detail-value" id="prev-month-sales">\0</div>
-              <div class="detail-sub">平均 <span id="pm-avg-sales">\0</span> / 日　最大 <span id="pm-max-sales">\0</span></div>
+              <div class="detail-value" id="prev-month-sales">¥525,150</div>
+              <div class="detail-sub">平均 <span id="pm-avg-sales">¥21,881</span> / 日　最大 <span id="pm-max-sales">¥57,800</span></div>
             </div>
           </div>
         </div>
@@ -594,19 +593,19 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
           <div class="detail-row">
             <div style="width:100%;">
               <div class="detail-label">当月来店</div>
-              <div class="detail-value" id="current-month-visits">0人</div>
-              <div class="detail-sub">平均 <span id="cm-avg-visits">0</span>人/日　最大 <span id="cm-max-visits">0</span>人　新規 <span id="cm-new" class="stat-accent">0</span>人　リピート率 <span id="cm-repeat">0</span>%</div>
+              <div class="detail-value" id="current-month-visits">62人</div>
+              <div class="detail-sub">平均 <span id="cm-avg-visits">7.8</span>人/日　最大 <span id="cm-max-visits">22</span>人　新規 <span id="cm-new" class="stat-accent">6</span>人　リピート率 <span id="cm-repeat">73</span>%</div>
             </div>
           </div>
           <div class="detail-row">
             <div style="width:100%;">
               <div class="detail-label">前月来店</div>
-              <div class="detail-value" id="prev-month-visits">0人</div>
-              <div class="detail-sub">平均 <span id="pm-avg-visits">0</span>人/日　最大 <span id="pm-max-visits">0</span>人　新規 <span id="pm-new" class="stat-accent">0</span>人　リピート率 <span id="pm-repeat">0</span>%</div>
+              <div class="detail-value" id="prev-month-visits">207人</div>
+              <div class="detail-sub">平均 <span id="pm-avg-visits">8.6</span>人/日　最大 <span id="pm-max-visits">28</span>人　新規 <span id="pm-new" class="stat-accent">36</span>人　リピート率 <span id="pm-repeat">46</span>%</div>
             </div>
           </div>
           <div style="margin-top:10px;">
-            <span class="link-btn" onclick="showPage('history')">過去の実績 →</span>
+            <span class="link-btn" onclick="showPage(&#39;history&#39;)">過去の実績 →</span>
           </div>
         </div>
       </div>
@@ -615,7 +614,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
       <div class="card" style="margin-bottom:16px;">
         <div class="calendar-header">
           <button class="calendar-nav" onclick="changeMonth(-1)">?</button>
-          <div class="calendar-month" id="calendar-title" onclick="showMonthly()">2026年4月</div>
+          <div class="calendar-month" id="calendar-title" onclick="showMonthly()">2026年5月</div>
           <button class="calendar-nav" onclick="changeMonth(1)">?</button>
         </div>
         <div class="calendar-grid" id="calendar-days-header">
@@ -627,14 +626,14 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
           <div class="cal-day-header">土</div>
           <div class="cal-day-header">日</div>
         </div>
-        <div class="calendar-grid" id="calendar-grid"></div>
+        <div class="calendar-grid" id="calendar-grid"><div class="cal-day other-month"></div><div class="cal-day other-month"></div><div class="cal-day other-month"></div><div class="cal-day other-month"></div><div class="cal-day"><div class="cal-day-num">1</div><div class="cal-sales">¥3,800</div></div><div class="cal-day"><div class="cal-day-num">2</div><div class="cal-sales">¥18,900</div></div><div class="cal-day"><div class="cal-day-num">3</div><div class="cal-sales">¥32,200</div></div><div class="cal-day"><div class="cal-day-num">4</div><div class="cal-sales">¥41,400</div></div><div class="cal-day"><div class="cal-day-num">5</div><div class="cal-sales">¥88,800</div></div><div class="cal-day"><div class="cal-day-num">6</div><div class="cal-sales">¥3,300</div></div><div class="cal-day"><div class="cal-day-num">7</div><div class="cal-sales">¥6,500</div></div><div class="cal-day"><div class="cal-day-num">8</div><div class="cal-sales">¥10,500</div></div><div class="cal-day today"><div class="cal-day-num" style="font-weight: 900;">9</div></div><div class="cal-day"><div class="cal-day-num">10</div></div><div class="cal-day"><div class="cal-day-num">11</div></div><div class="cal-day"><div class="cal-day-num">12</div></div><div class="cal-day"><div class="cal-day-num">13</div></div><div class="cal-day"><div class="cal-day-num">14</div></div><div class="cal-day"><div class="cal-day-num">15</div></div><div class="cal-day"><div class="cal-day-num">16</div></div><div class="cal-day"><div class="cal-day-num">17</div></div><div class="cal-day"><div class="cal-day-num">18</div></div><div class="cal-day"><div class="cal-day-num">19</div></div><div class="cal-day"><div class="cal-day-num">20</div></div><div class="cal-day"><div class="cal-day-num">21</div></div><div class="cal-day"><div class="cal-day-num">22</div></div><div class="cal-day"><div class="cal-day-num">23</div></div><div class="cal-day"><div class="cal-day-num">24</div></div><div class="cal-day"><div class="cal-day-num">25</div></div><div class="cal-day"><div class="cal-day-num">26</div></div><div class="cal-day"><div class="cal-day-num">27</div></div><div class="cal-day"><div class="cal-day-num">28</div></div><div class="cal-day"><div class="cal-day-num">29</div></div><div class="cal-day"><div class="cal-day-num">30</div></div><div class="cal-day"><div class="cal-day-num">31</div></div></div>
       </div>
 
       <!-- ?B グラフ -->
       <div class="card" style="margin-bottom:16px;">
         <div class="section-title">月別推移（過去12ヶ月）</div>
         <div class="chart-container">
-          <canvas id="trend-chart"></canvas>
+          <canvas id="trend-chart" width="2254" height="480" style="display: block; box-sizing: border-box; height: 240px; width: 1127px;"></canvas>
         </div>
       </div>
 
@@ -642,21 +641,21 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
       <div class="summary-grid">
         <div class="stat-card">
           <div class="stat-label">累計売上</div>
-          <div class="stat-value" id="total-sales">\0</div>
+          <div class="stat-value" id="total-sales">¥3,484,291</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">累計来店数</div>
-          <div class="stat-value" id="total-visits">0人</div>
-          <div class="stat-sub">ユニーク顧客 <span id="unique-customers" class="stat-accent">0人</span></div>
+          <div class="stat-value" id="total-visits">794人</div>
+          <div class="stat-sub">ユニーク顧客 <span id="unique-customers" class="stat-accent">179人</span></div>
         </div>
         <div class="stat-card">
           <div class="stat-label">リピート率</div>
-          <div class="stat-value" id="repeat-rate">0%</div>
-          <div class="stat-sub">リピーター <span id="repeat-count" class="stat-accent">0人</span></div>
+          <div class="stat-value" id="repeat-rate">35%</div>
+          <div class="stat-sub">リピーター <span id="repeat-count" class="stat-accent">62人</span></div>
         </div>
         <div class="stat-card">
           <div class="stat-label">総組数</div>
-          <div class="stat-value" id="total-groups">0組</div>
+          <div class="stat-value" id="total-groups">513組</div>
           <div class="stat-sub">読み込み伝票数</div>
         </div>
       </div>
@@ -692,7 +691,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
     <!-- ===== 月次実績ページ ===== -->
     <div class="page" id="page-monthly">
       <div style="margin-bottom:16px;">
-        <span class="link-btn" onclick="showPage('top')">← ダッシュボードへ</span>
+        <span class="link-btn" onclick="showPage(&#39;top&#39;)">← ダッシュボードへ</span>
       </div>
       <div class="card">
         <div class="section-title" id="monthly-title">2026年4月 月次実績</div>
@@ -718,7 +717,70 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
               <th>年月</th><th>売上</th><th>来店人数</th><th>ユニーク顧客</th><th>新規</th><th>リピート率</th><th>組数</th><th></th>
             </tr>
           </thead>
-          <tbody id="history-table-body"></tbody>
+          <tbody id="history-table-body"><tr>
+      <td>2026年5月</td>
+      <td>¥205,400</td>
+      <td>62人</td>
+      <td>22人</td>
+      <td>6人</td>
+      <td>73%</td>
+      <td>26組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=2026;currentCalendarMonth=4;showMonthly()">月次詳細</button></td>
+    </tr><tr>
+      <td>2026年4月</td>
+      <td>¥525,150</td>
+      <td>207人</td>
+      <td>67人</td>
+      <td>36人</td>
+      <td>46%</td>
+      <td>118組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=2026;currentCalendarMonth=3;showMonthly()">月次詳細</button></td>
+    </tr><tr>
+      <td>2026年3月</td>
+      <td>¥508,599</td>
+      <td>101人</td>
+      <td>42人</td>
+      <td>18人</td>
+      <td>57%</td>
+      <td>69組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=2026;currentCalendarMonth=2;showMonthly()">月次詳細</button></td>
+    </tr><tr>
+      <td>2026年2月</td>
+      <td>¥606,097</td>
+      <td>106人</td>
+      <td>46人</td>
+      <td>24人</td>
+      <td>48%</td>
+      <td>80組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=2026;currentCalendarMonth=1;showMonthly()">月次詳細</button></td>
+    </tr><tr>
+      <td>2026年1月</td>
+      <td>¥599,046</td>
+      <td>118人</td>
+      <td>47人</td>
+      <td>29人</td>
+      <td>38%</td>
+      <td>70組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=2026;currentCalendarMonth=0;showMonthly()">月次詳細</button></td>
+    </tr><tr>
+      <td>2025年12月</td>
+      <td>¥552,249</td>
+      <td>127人</td>
+      <td>47人</td>
+      <td>33人</td>
+      <td>30%</td>
+      <td>80組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=2025;currentCalendarMonth=11;showMonthly()">月次詳細</button></td>
+    </tr><tr>
+      <td>2025年11月</td>
+      <td>¥487,750</td>
+      <td>73人</td>
+      <td>33人</td>
+      <td>33人</td>
+      <td>0%</td>
+      <td>49組</td>
+      <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=2025;currentCalendarMonth=10;showMonthly()">月次詳細</button></td>
+    </tr></tbody>
         </table>
       </div>
       </div>
@@ -728,7 +790,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
     <div class="page" id="page-upload">
       <div class="card" style="max-width:600px;margin-bottom:16px;">
         <div class="section-title">CSVデータ読み込み</div>
-        <div class="upload-area" onclick="document.getElementById('csv-input').click()">
+        <div class="upload-area" onclick="document.getElementById(&#39;csv-input&#39;).click()">
           <div class="upload-icon">📂</div>
           <div class="upload-text">CSVファイルをタップして選択<br><small>（伝票データNo1.csv など）</small></div>
           <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="loadCSV(event)">
@@ -738,10 +800,10 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
         <!-- 読み込み済みデータ情報 -->
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
           <div class="section-title">保存済みデータ</div>
-          <div id="loaded-summary" style="font-size:13px;color:var(--muted);margin-bottom:12px;">データが読み込まれていません</div>
+          <div id="loaded-summary" style="font-size:13px;color:var(--muted);margin-bottom:12px;">513件 ／  ? 2026-05-08</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn-secondary" onclick="exportCSV()" id="export-btn" style="display:none;">💾 CSVエクスポート</button>
-            <button class="btn-secondary" onclick="clearAllData()" id="clear-btn" style="display:none;color:#e74c3c;border-color:#e74c3c;">🗑️ データを削除</button>
+            <button class="btn-secondary" onclick="exportCSV()" id="export-btn" style="">💾 CSVエクスポート</button>
+            <button class="btn-secondary" onclick="clearAllData()" id="clear-btn" style="color: rgb(231, 76, 60); border-color: rgb(231, 76, 60);">🗑️ データを削除</button>
           </div>
         </div>
       </div>
@@ -749,7 +811,15 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
       <!-- 読み込み履歴 -->
       <div class="card" style="max-width:600px;">
         <div class="section-title">読み込み履歴</div>
-        <div id="upload-history" style="font-size:13px;color:var(--muted);">履歴なし</div>
+        <div id="upload-history" style="font-size:13px;color:var(--muted);">
+      <div style="padding:8px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+        <div>
+          <div style="font-weight:500;color:var(--text);">伝票データNo1_final.csv</div>
+          <div style="font-size:11px;color:var(--muted);">2026/4/4 22:40:22</div>
+        </div>
+        <div style="font-size:12px;color:var(--accent);">+124件追加（計124件）</div>
+      </div>
+    </div>
       </div>
     </div>
 
@@ -761,8 +831,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
         <div class="section-title">顧客・日付検索</div>
         <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;align-items:flex-start;">
           <div style="position:relative;">
-            <input type="text" id="search-name" placeholder="顧客名（ひらがな1文字で候補）" class="modal-input" style="max-width:240px;"
-              oninput="onNameInput()" onblur="setTimeout(hideNameCandidates,200)">
+            <input type="text" id="search-name" placeholder="顧客名（ひらがな1文字で候補）" class="modal-input" style="max-width:240px;" oninput="onNameInput()" onblur="setTimeout(hideNameCandidates,200)">
             <div id="name-candidates" style="display:none;position:absolute;top:100%;left:0;background:white;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:300;min-width:200px;max-height:200px;overflow-y:auto;"></div>
           </div>
           <input type="text" id="search-date" placeholder="日付（例：12月13日）" class="modal-input" style="max-width:180px;">
@@ -828,9 +897,9 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 
       <!-- タブナビ（新しい分析はここに追加） -->
       <div class="an-tab-nav">
-        <button class="an-tab-btn active" onclick="anSwitchTab('weekday',this)">📅 曜日別実績</button>
-        <button class="an-tab-btn"        onclick="anSwitchTab('ranking',this)">🏆 常連ランキング</button>
-        <button class="an-tab-btn"        onclick="anSwitchTab('bottle', this)">🍶 ボトルランキング</button>
+        <button class="an-tab-btn active" onclick="anSwitchTab(&#39;weekday&#39;,this)">📅 曜日別実績</button>
+        <button class="an-tab-btn" onclick="anSwitchTab(&#39;ranking&#39;,this)">🏆 常連ランキング</button>
+        <button class="an-tab-btn" onclick="anSwitchTab(&#39;bottle&#39;, this)">🍶 ボトルランキング</button>
         <!-- ▼ 新しいタブはここに追加 ▼ -->
       </div>
 
@@ -839,8 +908,8 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
 
         <div class="an-period-row">
           <div style="display:flex;gap:6px;">
-            <button class="an-chip active" onclick="anSetWdMode('all',this)">全期間</button>
-            <button class="an-chip"        onclick="anSetWdMode('month',this)">月別</button>
+            <button class="an-chip active" onclick="anSetWdMode(&#39;all&#39;,this)">全期間</button>
+            <button class="an-chip" onclick="anSetWdMode(&#39;month&#39;,this)">月別</button>
           </div>
         </div>
 
@@ -881,8 +950,8 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
         <div class="card" style="margin-bottom:16px;">
           <div class="section-title">全期間ランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">2回以上来店・全員表示</span></div>
           <div class="an-sub-tabs">
-            <button class="an-stab active" onclick="anSetRankType('visits',this)">来店回数</button>
-            <button class="an-stab"        onclick="anSetRankType('amount',this)">合計金額</button>
+            <button class="an-stab active" onclick="anSetRankType(&#39;visits&#39;,this)">来店回数</button>
+            <button class="an-stab" onclick="anSetRankType(&#39;amount&#39;,this)">合計金額</button>
           </div>
           <div id="an-rank-all" class="an-rank-grid"></div>
         </div>
@@ -919,8 +988,7 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
       <div class="card" style="margin-bottom:16px;">
         <div class="section-title">📸 伝票画像をアップロード</div>
         <label class="receipt-upload-area" for="receipt-file-input" style="display:block;cursor:pointer;">
-          <input type="file" id="receipt-file-input" accept="image/*" multiple
-            onchange="onReceiptFilesSelected(event)">
+          <input type="file" id="receipt-file-input" accept="image/*" multiple="" onchange="onReceiptFilesSelected(event)">
           <div style="font-size:40px;margin-bottom:10px;">📷</div>
           <div style="font-size:15px;font-weight:600;color:var(--primary);margin-bottom:6px;">
             タップして伝票を撮影・選択
@@ -928,9 +996,8 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
           <div style="font-size:12px;color:var(--muted);">複数枚同時選択OK</div>
         </label>
         <div id="receipt-preview-grid" class="receipt-preview-grid"></div>
-        <div style="margin-top:16px;" id="receipt-action-row" style="display:none">
-          <button class="btn-primary" id="receipt-url-btn"
-            onclick="uploadReceiptsAndGetURLs()" style="display:none;background:#6c757d;">
+        <div style="margin-top:16px;" id="receipt-action-row">
+          <button class="btn-primary" id="receipt-url-btn" onclick="uploadReceiptsAndGetURLs()" style="display:none;background:#6c757d;">
             🔗 URLを発行する
           </button>
         </div>
@@ -1027,7 +1094,7 @@ function parseJpDate(str) {
   return null;
 }
 
-function formatYen(n) { return '\' + Math.round(n).toLocaleString(); }
+function formatYen(n) { return '¥' + Math.round(n).toLocaleString(); }
 function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function getDateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
@@ -1398,7 +1465,7 @@ function updateChart() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
       scales: {
-        y1: { position: 'left', ticks: { callback: v => '\'+v.toLocaleString(), font: { size: 10 } } },
+        y1: { position: 'left', ticks: { callback: v => '¥'+v.toLocaleString(), font: { size: 10 } } },
         y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } }
       }
     }
@@ -1452,7 +1519,7 @@ function renderCalendar() {
     if (daySales[d]) {
       const sEl = document.createElement('div');
       sEl.className = 'cal-sales';
-      sEl.textContent = '\' + daySales[d].toLocaleString();
+      sEl.textContent = '¥' + daySales[d].toLocaleString();
       el.appendChild(sEl);
     }
 
@@ -2043,8 +2110,8 @@ init();
       <tr>
         <td><strong>${s.lbl}</strong></td>
         <td>${s.op}日</td>
-        <td>${s.op?'\'+s.avgS.toLocaleString():'-'}</td>
-        <td>${s.op?'\'+s.maxS.toLocaleString():'-'}</td>
+        <td>${s.op?'¥'+s.avgS.toLocaleString():'-'}</td>
+        <td>${s.op?'¥'+s.maxS.toLocaleString():'-'}</td>
         <td>${s.op?s.avgV+'人':'-'}</td>
         <td>${s.op?s.maxV+'人':'-'}</td>
         <td>${s.op?s.avgG+'組':'-'}</td>
@@ -2131,7 +2198,7 @@ init();
     document.getElementById('an-cust-name').textContent  = name;
     document.getElementById('an-cust-dates').textContent = `初回 ${fmtD(first)}　直近 ${fmtD(last)}`;
     document.getElementById('an-cust-visits').textContent = recs.length + '回';
-    document.getElementById('an-cust-amount').textContent = '\' + total.toLocaleString();
+    document.getElementById('an-cust-amount').textContent = '¥' + total.toLocaleString();
     document.getElementById('an-cust-bottle').textContent = bottleTxt;
 
     // 来店履歴（新しい順）
@@ -2394,5 +2461,5 @@ init();
     }
   };
 })();</script>
-</body>
-</html>
+
+</body></html>
