@@ -1071,33 +1071,39 @@ function loadCSV(event) {
 
 async function processCSVText(text, file, event) {
     const newRecords = parseCSVtoArray(text);
+    const hasId = newRecords.length > 0 && newRecords[0]['id'] !== undefined && newRecords[0]['id'] !== '';
 
-    // 既存データと重複チェックして追記
-    const existingKeys = new Set(records.map(r => r['日付'] + '|' + r['顧客名'] + '|' + r['合計']));
-    const added = newRecords.filter(r => {
-      const key = r['日付'] + '|' + r['顧客名'] + '|' + r['合計'];
-      return !existingKeys.has(key);
-    });
-
-    // Supabaseに保存
-    if (added.length > 0) {
-      document.getElementById('upload-status').textContent = '📡 Supabaseに保存中...';
-      await saveToSupabase(added);
-      // Supabaseから最新データを再取得
+    if (hasId) {
+      // id列あり → upsert（groups計算してから保存）
+      newRecords.sort((a,b) => (a._date||0) - (b._date||0));
+      computeGroups(newRecords);
+      document.getElementById('upload-status').textContent = '📡 Supabaseに保存中（upsert）...';
+      await saveToSupabase(newRecords, true);
       await loadFromSupabase();
+      addUploadHistory(file.name, newRecords.length, newRecords.length);
+      document.getElementById('upload-status').textContent = `✅ ${file.name} を読み込みました（${newRecords.length}件upsert）`;
+    } else {
+      // id列なし → 重複チェックして新規insert
+      const existingKeys = new Set(records.map(r => r['日付'] + '|' + r['顧客名'] + '|' + r['合計']));
+      const added = newRecords.filter(r => {
+        const key = r['日付'] + '|' + r['顧客名'] + '|' + r['合計'];
+        return !existingKeys.has(key);
+      });
+      if (added.length > 0) {
+        added.sort((a,b) => (a._date||0) - (b._date||0));
+        computeGroups(added);
+        document.getElementById('upload-status').textContent = '📡 Supabaseに保存中...';
+        await saveToSupabase(added, false);
+        await loadFromSupabase();
+      }
+      addUploadHistory(file.name, newRecords.length, added.length);
+      const msg = added.length === newRecords.length
+        ? `✅ ${file.name} を読み込みました（${added.length}件追加）`
+        : `✅ ${file.name} を読み込みました（${added.length}件追加 / ${newRecords.length - added.length}件は重複のためスキップ）`;
+      document.getElementById('upload-status').textContent = msg;
     }
 
-    // 履歴に追加
-    addUploadHistory(file.name, newRecords.length, added.length);
-
-    const msg = added.length === newRecords.length
-      ? `✅ ${file.name} を読み込みました（${added.length}件追加）`
-      : `✅ ${file.name} を読み込みました（${added.length}件追加 / ${newRecords.length - added.length}件は重複のためスキップ）`;
-    document.getElementById('upload-status').textContent = msg;
-
-    // ファイル入力リセット
     event.target.value = '';
-
     updateLoadedSummary();
     updateDashboard();
 }
@@ -1280,7 +1286,7 @@ async function exportCSVFromSupabase() {
       .order('id', { ascending: true })
       .limit(10000);
     if (error) throw error;
-    const header = ['id','日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','created_at'];
+    const header = ['id','日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','groups','created_at'];
     const escape = v => {
       const s = v == null ? '' : String(v);
       return /[,"\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
@@ -1304,8 +1310,8 @@ async function exportCSVFromSupabase() {
 
 // ===== CSVエクスポート（ローカル） =====
 function exportCSV() {
-  const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考'];
-  const rows = records.map(r => header.map(h => r[h] || '').join(','));
+  const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','groups'];
+  const rows = records.map(r => header.map(h => h === 'groups' ? (r._groups || 0) : (r[h] || '')).join(','));
   const csv = '\uFEFF' + header.join(',') + '\n' + rows.join('\n');
   const blob = new Blob([csv], {type: 'text/csv'});
   const url = URL.createObjectURL(blob);
@@ -1888,22 +1894,29 @@ function goBack() {
 }
 
 // ===== Supabase データ保存 =====
-async function saveToSupabase(newRecords) {
+async function saveToSupabase(newRecords, useUpsert = false) {
   try {
-    // upsert（重複はスキップ）
-    const rows = newRecords.map(r => ({
-      日付: r['日付'] || '',
-      顧客名: r['顧客名'] || '',
-      人数: r._people || 0,
-      合計: r._total || 0,
-      ボトル: r['ボトル'] || '',
-      炭酸: r['炭酸'] || '',
-      その他: r['その他'] || '',
-      同行者: r['同行者'] || '',
-      精度: r['精度'] || '',
-      備考: r['備考'] || ''
-    }));
-    const { error } = await sbClient.from('hareru_records').insert(rows);
+    const rows = newRecords.map(r => {
+      const row = {
+        日付: r['日付'] || '',
+        顧客名: r['顧客名'] || '',
+        人数: r._people || 0,
+        合計: r._total || 0,
+        ボトル: r['ボトル'] || '',
+        炭酸: r['炭酸'] || '',
+        その他: r['その他'] || '',
+        同行者: r['同行者'] || '',
+        精度: r['精度'] || '',
+        備考: r['備考'] || '',
+        groups: r._groups || 0
+      };
+      if (useUpsert && r['id']) row.id = parseInt(r['id']);
+      return row;
+    });
+    const query = useUpsert
+      ? sbClient.from('hareru_records').upsert(rows, { onConflict: 'id' })
+      : sbClient.from('hareru_records').insert(rows);
+    const { error } = await query;
     if (error) console.error('Supabase保存エラー:', error.message, '| code:', error.code, '| details:', error.details, '| hint:', error.hint);
   } catch(e) {
     console.error('Supabase保存例外:', e.message || e);
