@@ -1153,6 +1153,31 @@ function parseCSVtoArray(text) {
   return result;
 }
 
+// ===== 組数計算（同行者skipルール） =====
+function computeGroups(recs) {
+  const byDate = {};
+  recs.forEach(r => {
+    const k = r._date ? getDateKey(r._date) : '__nodate__';
+    if (!byDate[k]) byDate[k] = [];
+    byDate[k].push(r);
+  });
+  Object.values(byDate).forEach(dayRecs => {
+    let skip = 0;
+    dayRecs.forEach(r => {
+      if (skip > 0) {
+        r._groups = 0;
+        skip--;
+      } else {
+        r._groups = 1;
+        const c = r['同行者'] || '';
+        if (c.trim()) {
+          skip = c.split(/[・、,]/).filter(s => s.trim()).length;
+        }
+      }
+    });
+  });
+}
+
 // ===== ローカルストレージ保存・読み込み =====
 function saveToStorage() {
   try {
@@ -1181,6 +1206,7 @@ function loadFromStorage() {
         return r;
       });
       records.sort((a,b) => (a._date||0) - (b._date||0));
+      computeGroups(records);
     }
     const savedBiz = localStorage.getItem(LS_BIZDAYS);
     if (savedBiz) businessDays = JSON.parse(savedBiz);
@@ -1334,7 +1360,7 @@ function updateDashboard() {
   document.getElementById('unique-customers').textContent = uniqueCount + '人';
   document.getElementById('repeat-rate').textContent = repeatRate + '%';
   document.getElementById('repeat-count').textContent = repeatCount + '人';
-  document.getElementById('total-groups').textContent = records.length + '組';
+  document.getElementById('total-groups').textContent = records.reduce((s,r)=>s+(r._groups||0),0) + '組';
 
   updateMonthStats(thisYear, thisMonth);
   updateChart();
@@ -1521,7 +1547,7 @@ function showDaily(year, month, day) {
   const totalVisits = dayRecs.reduce((s,r)=>s+r._people,0);
   document.getElementById('daily-sales').textContent = formatYen(totalSales);
   document.getElementById('daily-visits').textContent = totalVisits + '人';
-  document.getElementById('daily-groups').textContent = dayRecs.length + '組';
+  document.getElementById('daily-groups').textContent = dayRecs.reduce((s,r)=>s+(r._groups||0),0) + '組';
 
   const isBiz = businessDays[dateKey] !== false;
   document.getElementById('business-day-badge').textContent = isBiz ? '営業日' : '休業日';
@@ -1591,7 +1617,7 @@ function showMonthly() {
       <td>${dow}</td>
       <td>${sales > 0 ? formatYen(sales) : '-'}</td>
       <td>${visits > 0 ? visits+'人' : '-'}</td>
-      <td>${dayRecs.length > 0 ? dayRecs.length+'組' : '-'}</td>
+      <td>${dayRecs.length > 0 ? dayRecs.reduce((s,r)=>s+(r._groups||0),0)+'組' : '-'}</td>
       <td>${dayRecs.length > 0 ? `<button class="btn-sm btn-accent" onclick="showDaily(${year},${month},${d})">詳細</button>` : ''}</td>
     `;
     tbody.appendChild(tr);
@@ -1632,7 +1658,7 @@ function updateHistory() {
       <td>${mNames.size}人</td>
       <td>${newCount}人</td>
       <td>${repeatRate}%</td>
-      <td>${mRecs.length}組</td>
+      <td>${mRecs.reduce((s,r)=>s+(r._groups||0),0)}組</td>
       <td><button class="btn-sm btn-accent" onclick="currentCalendarYear=${y};currentCalendarMonth=${m-1};showMonthly()">月次詳細</button></td>
     `;
     tbody.appendChild(tr);
@@ -1817,6 +1843,7 @@ function saveEdit() {
   r._date = parseJpDate(r['日付']);
   r._total = parseInt(r['合計'])||0;
   r._people = r['同行者'] ? 1 : (parseInt(r['人数']) || 0);
+  computeGroups(records);
   closeModal();
   updateDashboard();
   // 現在の日次詳細を再表示
@@ -1910,6 +1937,7 @@ async function loadFromSupabase() {
       _id: r.id
     }));
     records.sort((a,b) => (a._date||0) - (b._date||0));
+    computeGroups(records);
   } catch(e) {
     console.error('Supabase読み込み例外:', e.message || e);
   }
@@ -2056,10 +2084,10 @@ init();
       dm[wi].dates.add(dateKey);
       dm[wi].totS += s;
       dm[wi].totV += v;
-      dm[wi].totG += 1; // 伝票1件=1組
+      dm[wi].totG += r._groups||0;
       dm[wi].sbd[dateKey] = (dm[wi].sbd[dateKey]||0) + s;
       dm[wi].vbd[dateKey] = (dm[wi].vbd[dateKey]||0) + v;
-      dm[wi].gbd[dateKey] = (dm[wi].gbd[dateKey]||0) + 1; // 日付ごとの組数
+      dm[wi].gbd[dateKey] = (dm[wi].gbd[dateKey]||0) + (r._groups||0);
     });
 
     const st = WD.map((lbl,i) => {
