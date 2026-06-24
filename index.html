@@ -726,6 +726,10 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
     <!-- ===== データ読み込みページ ===== -->
     <div class="page" id="page-upload">
       <div class="card" style="max-width:600px;margin-bottom:16px;">
+        <button class="btn-secondary" onclick="exportCSVFromSupabase()" id="export-all-btn"
+          style="width:100%;padding:12px;font-size:14px;font-weight:600;">📥 全データをCSVエクスポート</button>
+      </div>
+      <div class="card" style="max-width:600px;margin-bottom:16px;">
         <div class="section-title">CSVデータ読み込み</div>
         <div class="upload-area" onclick="document.getElementById('csv-input').click()">
           <div class="upload-icon">📂</div>
@@ -1238,7 +1242,41 @@ function updateLoadedSummary() {
   }
 }
 
-// ===== CSVエクスポート =====
+// ===== CSVエクスポート（Supabase全件） =====
+async function exportCSVFromSupabase() {
+  const btn = document.getElementById('export-all-btn');
+  btn.textContent = '⏳ 取得中...';
+  btn.disabled = true;
+  try {
+    const { data, error } = await sbClient
+      .from('hareru_records')
+      .select('*')
+      .order('id', { ascending: true })
+      .limit(10000);
+    if (error) throw error;
+    const header = ['id','日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','created_at'];
+    const escape = v => {
+      const s = v == null ? '' : String(v);
+      return /[,"\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const rows = data.map(r => header.map(h => escape(r[h])).join(','));
+    const csv = '﻿' + header.join(',') + '\n' + rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hareru_backup_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    btn.textContent = `✅ ${data.length}件をエクスポートしました`;
+    setTimeout(() => { btn.textContent = '📥 全データをCSVエクスポート'; btn.disabled = false; }, 3000);
+  } catch (e) {
+    btn.textContent = '❌ エラー: ' + e.message;
+    btn.disabled = false;
+  }
+}
+
+// ===== CSVエクスポート（ローカル） =====
 function exportCSV() {
   const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考'];
   const rows = records.map(r => header.map(h => r[h] || '').join(','));
