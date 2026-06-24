@@ -1147,7 +1147,7 @@ function parseCSVtoArray(text) {
     obj['ボトル'] = normalizeBottleName(obj['ボトル']);
     obj._date = parseJpDate(obj['日付']);
     obj._total = parseInt(obj['合計']) || 0;
-    obj._people = obj['同行者'] ? 1 : (parseInt(obj['人数']) || 0);
+    obj._people = parseInt(obj['人数'] || 0);
     result.push(obj);
   }
   return result;
@@ -1202,7 +1202,7 @@ function loadFromStorage() {
       records = parsed.map(r => {
         r._date = parseJpDate(r['日付']);
         r._total = parseInt(r['合計']) || 0;
-        r._people = r['同行者'] ? 1 : (parseInt(r['人数']) || 0);
+        r._people = parseInt(r['人数'] || 0);
         return r;
       });
       records.sort((a,b) => (a._date||0) - (b._date||0));
@@ -1842,7 +1842,7 @@ function saveEdit() {
   r['備考'] = document.getElementById('edit-note').value;
   r._date = parseJpDate(r['日付']);
   r._total = parseInt(r['合計'])||0;
-  r._people = r['同行者'] ? 1 : (parseInt(r['人数']) || 0);
+  r._people = parseInt(r['人数'] || 0);
   computeGroups(records);
   closeModal();
   updateDashboard();
@@ -1933,7 +1933,7 @@ async function loadFromSupabase() {
       '備考': r['備考'] || '',
       _date: parseJpDate(r['日付']),
       _total: r['合計'] || 0,
-      _people: r['同行者'] ? 1 : (parseInt(r['人数']) || 0),
+      _people: parseInt(r['人数'] || 0),
       _id: r.id
     }));
     records.sort((a,b) => (a._date||0) - (b._date||0));
