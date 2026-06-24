@@ -1077,6 +1077,7 @@ async function processCSVText(text, file, event) {
       // id列あり → upsert（groups計算してから保存）
       newRecords.sort((a,b) => (a._date||0) - (b._date||0));
       computeGroups(newRecords);
+      computeIsNew(newRecords);
       document.getElementById('upload-status').textContent = '📡 Supabaseに保存中（upsert）...';
       await saveToSupabase(newRecords, true);
       await loadFromSupabase();
@@ -1090,8 +1091,9 @@ async function processCSVText(text, file, event) {
         return !existingKeys.has(key);
       });
       if (added.length > 0) {
-        added.sort((a,b) => (a._date||0) - (b._date||0));
-        computeGroups(added);
+        const combined = [...records, ...added].sort((a,b) => (a._date||0) - (b._date||0));
+        computeGroups(combined);
+        computeIsNew(combined);
         document.getElementById('upload-status').textContent = '📡 Supabaseに保存中...';
         await saveToSupabase(added, false);
         await loadFromSupabase();
@@ -1184,6 +1186,21 @@ function computeGroups(recs) {
   });
 }
 
+// ===== 新規顧客フラグ計算 =====
+function computeIsNew(recs) {
+  // recs は日付昇順ソート済みであること
+  const seen = new Set();
+  recs.forEach(r => {
+    const name = (r['顧客名'] || '').trim();
+    if (name && !seen.has(name)) {
+      r._is_new = 1;
+      seen.add(name);
+    } else {
+      r._is_new = 0;
+    }
+  });
+}
+
 // ===== ローカルストレージ保存・読み込み =====
 function saveToStorage() {
   try {
@@ -1213,6 +1230,7 @@ function loadFromStorage() {
       });
       records.sort((a,b) => (a._date||0) - (b._date||0));
       computeGroups(records);
+      computeIsNew(records);
     }
     const savedBiz = localStorage.getItem(LS_BIZDAYS);
     if (savedBiz) businessDays = JSON.parse(savedBiz);
@@ -1286,7 +1304,7 @@ async function exportCSVFromSupabase() {
       .order('id', { ascending: true })
       .limit(10000);
     if (error) throw error;
-    const header = ['id','日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','groups','created_at'];
+    const header = ['id','日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','groups','is_new','created_at'];
     const escape = v => {
       const s = v == null ? '' : String(v);
       return /[,"\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
@@ -1310,8 +1328,12 @@ async function exportCSVFromSupabase() {
 
 // ===== CSVエクスポート（ローカル） =====
 function exportCSV() {
-  const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','groups'];
-  const rows = records.map(r => header.map(h => h === 'groups' ? (r._groups || 0) : (r[h] || '')).join(','));
+  const header = ['日付','顧客名','人数','合計','ボトル','炭酸','その他','同行者','精度','備考','groups','is_new'];
+  const rows = records.map(r => header.map(h => {
+    if (h === 'groups') return r._groups || 0;
+    if (h === 'is_new') return r._is_new || 0;
+    return r[h] || '';
+  }).join(','));
   const csv = '\uFEFF' + header.join(',') + '\n' + rows.join('\n');
   const blob = new Blob([csv], {type: 'text/csv'});
   const url = URL.createObjectURL(blob);
@@ -1850,6 +1872,7 @@ function saveEdit() {
   r._total = parseInt(r['合計'])||0;
   r._people = parseInt(r['人数'] || 0);
   computeGroups(records);
+  computeIsNew(records);
   closeModal();
   updateDashboard();
   // 現在の日次詳細を再表示
@@ -1908,7 +1931,8 @@ async function saveToSupabase(newRecords, useUpsert = false) {
         同行者: r['同行者'] || '',
         精度: r['精度'] || '',
         備考: r['備考'] || '',
-        groups: r._groups || 0
+        groups: r._groups || 0,
+        is_new: r._is_new || 0
       };
       if (useUpsert && r['id']) row.id = parseInt(r['id']);
       return row;
@@ -1951,6 +1975,7 @@ async function loadFromSupabase() {
     }));
     records.sort((a,b) => (a._date||0) - (b._date||0));
     computeGroups(records);
+    computeIsNew(records);
   } catch(e) {
     console.error('Supabase読み込み例外:', e.message || e);
   }
