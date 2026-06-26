@@ -900,12 +900,18 @@ body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background: var(--bg)
       <div id="an-bottle" class="an-content">
 
         <div class="card" style="margin-bottom:16px;">
-          <div class="section-title">全期間 ボトルランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">ベスト5</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <div class="section-title" style="margin:0;">全期間 ボトルランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">ベスト5</span></div>
+            <button class="btn-primary" style="font-size:13px;padding:6px 18px;" onclick="anRenderBottleAll()">表示する</button>
+          </div>
           <div id="an-bottle-all" class="an-bottle-list"></div>
         </div>
 
         <div class="card">
-          <div class="section-title">月別 ボトルランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">各月ベスト3</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <div class="section-title" style="margin:0;">月別 ボトルランキング <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">各月ベスト3</span></div>
+            <button class="btn-primary" style="font-size:13px;padding:6px 18px;" onclick="anRenderBottleMonthly()">表示する</button>
+          </div>
           <div id="an-bottle-monthly" class="an-monthly-grid"></div>
         </div>
       </div>
