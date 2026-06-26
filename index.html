@@ -2039,6 +2039,7 @@ init();
     btn.classList.add('active');
     document.querySelectorAll('#page-analytics .an-content').forEach(el => el.classList.remove('active'));
     document.getElementById('an-' + id).classList.add('active');
+    if (id === 'bottle') { anRenderBottleAll(); anRenderBottleMonthly(); }
   };
 
   // 期間切替
