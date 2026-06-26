@@ -1997,6 +1997,7 @@ async function init() {
   if (records.length > 0) {
     updateDashboard();
     updateLoadedSummary();
+    if (typeof initAnalytics === 'function') initAnalytics();
   } else {
     renderCalendar();
   }
@@ -2040,6 +2041,21 @@ init();
     document.querySelectorAll('#page-analytics .an-content').forEach(el => el.classList.remove('active'));
     document.getElementById('an-' + id).classList.add('active');
     if (id === 'bottle') { anRenderBottleAll(); anRenderBottleMonthly(); }
+    if (id === 'ranking') {
+      anRankType = 'visits';
+      document.querySelectorAll('#an-ranking .an-stab').forEach(b => b.classList.remove('active'));
+      const visitsBtn = document.querySelector('#an-ranking .an-stab');
+      if (visitsBtn) visitsBtn.classList.add('active');
+      anRenderRankAll(); anRenderRankMonthly();
+    }
+    if (id === 'weekday') {
+      anWdMode = 'all';
+      document.querySelectorAll('#an-weekday .an-chip').forEach(b => b.classList.remove('active'));
+      const allBtn = document.querySelector('#an-weekday .an-chip');
+      if (allBtn) allBtn.classList.add('active');
+      document.getElementById('an-month-nav').style.display = 'none';
+      anRenderWeekday();
+    }
   };
 
   // 期間切替
